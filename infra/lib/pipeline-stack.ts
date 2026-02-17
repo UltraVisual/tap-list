@@ -30,8 +30,11 @@ export class PipelineStack extends cdk.Stack {
         commands: [
           'cd infra',
           'npm ci',
-          'npx cdk synth',
+          'npx cdk synth -c connectionArn=$CONNECTION_ARN',
         ],
+        env: {
+          CONNECTION_ARN: props.connectionArn,
+        },
         primaryOutputDirectory: 'infra/cdk.out',
       }),
     });
