@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Admin</title>
+  <link rel="stylesheet" href="/public/css/admin.css">
+</head>
+<body>
+  <div class="admin-header">
+    <h1><%= settings.taproom_name %> &mdash; Settings</h1>
+    <nav>
+      <a href="/admin">&larr; Back to Admin</a>
+      <a href="/">View Tap List</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="form-card">
+      <form method="POST" action="/admin/settings" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="taproom_name">Tap Room Name</label>
+          <input type="text" id="taproom_name" name="taproom_name"
+                 value="<%= settings.taproom_name %>" required>
+        </div>
+
+        <div class="form-group">
+          <label for="logo">Logo</label>
+          <input type="file" id="logo" name="logo" accept="image/*">
+          <% if (settings.logo_path) { %>
+            <div class="image-preview">
+              <img src="<%= settings.logo_path %>" alt="Current logo" style="max-height: 80px;">
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Upload a new image to replace</p>
+            </div>
+          <% } %>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

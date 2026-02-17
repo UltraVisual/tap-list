@@ -1,0 +1,188 @@
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #111;
+  --card-bg: #1a1a1a;
+  --card-border: #2a2a2a;
+  --text: #f0f0f0;
+  --text-muted: #999;
+  --accent: #f5a623;
+  --green: #4caf50;
+  --yellow: #ffc107;
+  --red: #f44336;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+/* ---------- Header ---------- */
+.header {
+  background: #1a1a1a;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--accent);
+}
+
+.header h1 {
+  font-size: 1.3rem;
+  color: var(--accent);
+}
+
+.header nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.header nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.header nav a:hover {
+  color: #fff;
+}
+
+/* ---------- Pour list ---------- */
+.pour-list {
+  padding: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+/* ---------- Pour card ---------- */
+.pour-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: border-color 0.3s;
+}
+
+.pour-card.poured {
+  border-color: var(--accent);
+}
+
+.pour-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pour-tap {
+  background: var(--accent);
+  color: #111;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.pour-info h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pour-style {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ---------- Level bar ---------- */
+.pour-level {
+  margin-bottom: 0.75rem;
+}
+
+.pour-bar {
+  height: 10px;
+  background: #333;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
+.pour-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.pour-count {
+  font-size: 0.85rem;
+}
+
+.pour-count .remaining {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.pour-count .total {
+  color: var(--text-muted);
+}
+
+/* ---------- Pour buttons ---------- */
+.pour-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pour-btn {
+  flex: 1;
+  padding: 0.6rem 0.5rem;
+  border: 1px solid var(--card-border);
+  background: #222;
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pour-btn:hover,
+.pour-btn:active {
+  background: #333;
+  border-color: var(--accent);
+}
+
+.pour-btn--primary {
+  background: var(--accent);
+  color: #111;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.pour-btn--primary:hover,
+.pour-btn--primary:active {
+  background: #e69a1e;
+}
+
+.pour-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings.taproom_name %> - Tap List</title>
+  <link rel="stylesheet" href="/public/css/display.css">
+</head>
+<body>
+  <header class="header">
+    <% if (settings.logo_path) { %>
+      <img src="<%= settings.logo_path %>" alt="<%= settings.taproom_name %>" class="logo">
+    <% } else { %>
+      <h1 class="taproom-name"><%= settings.taproom_name %></h1>
+    <% } %>
+  </header>
+
+  <main class="tap-grid">
+    <% if (beers.length === 0) { %>
+      <div class="empty-state">
+        <p>No beers on tap right now.</p>
+        <p class="subtle">Head to <a href="/admin">/admin</a> to add some.</p>
+      </div>
+    <% } %>
+    <% beers.forEach(beer => { %>
+      <div class="tap-card">
+        <div class="tap-number">#<%= beer.tap_number %></div>
+
+        <% if (beer.image_path) { %>
+          <div class="beer-image">
+            <img src="<%= beer.image_path %>" alt="<%= beer.name %>">
+          </div>
+        <% } else { %>
+          <div class="beer-image beer-image--placeholder">
+            <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <rect width="120" height="80" fill="none"/>
+              <text x="60" y="44" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12">No Image</text>
+            </svg>
+          </div>
+        <% } %>
+
+        <div class="beer-info">
+          <h2 class="beer-name"><%= beer.name %></h2>
+          <% if (beer.style) { %>
+            <span class="beer-style"><%= beer.style %></span>
+          <% } %>
+          <% if (beer.brewery) { %>
+            <span class="beer-brewery"><%= beer.brewery %></span>
+          <% } %>
+          <% if (beer.description) { %>
+            <p class="beer-description"><%= beer.description %></p>
+          <% } %>
+        </div>
+
+        <div class="beer-meta">
+          <span class="beer-abv"><%= beer.abv.toFixed(1) %>% ABV</span>
+          <% if (beer.pints_total > 0) { %>
+            <div class="pints-indicator" title="<%= Math.round(beer.pints_remaining) %> of <%= beer.pints_total %> pints remaining">
+              <div class="pints-bar">
+                <div class="pints-fill" style="width: <%= Math.round((beer.pints_remaining / beer.pints_total) * 100) %>%"></div>
+              </div>
+              <span class="pints-count"><%= Math.round(beer.pints_remaining) %> pints</span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+
+  <script>
+    // Auto-refresh every 30 seconds to pick up changes
+    setTimeout(() => location.reload(), 30000);
+  </script>
+</body>
+</html>

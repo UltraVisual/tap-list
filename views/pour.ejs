@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pour Tracker - <%= settings.taproom_name %></title>
+  <link rel="stylesheet" href="/public/css/pour.css">
+</head>
+<body>
+  <header class="header">
+    <h1>Pour Tracker</h1>
+    <nav>
+      <a href="/">Tap List</a>
+      <a href="/admin">Admin</a>
+    </nav>
+  </header>
+
+  <main class="pour-list">
+    <% if (beers.length === 0) { %>
+      <div class="empty">No beers on tap.</div>
+    <% } %>
+    <% beers.forEach(beer => { %>
+      <div class="pour-card" data-id="<%= beer.id %>">
+        <div class="pour-card-top">
+          <div class="pour-tap">#<%= beer.tap_number %></div>
+          <div class="pour-info">
+            <h2><%= beer.name %></h2>
+            <span class="pour-style"><%= beer.style %></span>
+          </div>
+        </div>
+
+        <div class="pour-level">
+          <div class="pour-bar">
+            <div class="pour-fill" style="width: <%= Math.round((beer.pints_remaining / beer.pints_total) * 100) %>%"></div>
+          </div>
+          <div class="pour-count">
+            <span class="remaining"><%= Math.round(beer.pints_remaining) %></span>
+            <span class="total">/ <%= beer.pints_total %> pints</span>
+          </div>
+        </div>
+
+        <div class="pour-actions">
+          <button class="pour-btn" data-amount="0.5" data-id="<%= beer.id %>">Half (0.5)</button>
+          <button class="pour-btn pour-btn--primary" data-amount="1" data-id="<%= beer.id %>">Pint (1)</button>
+          <button class="pour-btn" data-amount="0.33" data-id="<%= beer.id %>">Third (0.33)</button>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+
+  <script>
+    document.querySelectorAll('.pour-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const amount = btn.dataset.amount;
+
+        btn.disabled = true;
+        btn.textContent = '...';
+
+        try {
+          const res = await fetch(`/api/beers/${id}/pour`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: parseFloat(amount) }),
+          });
+
+          if (!res.ok) throw new Error('Pour failed');
+
+          const data = await res.json();
+
+          // Update the card
+          const card = btn.closest('.pour-card');
+          const pct = Math.round((data.pints_remaining / data.pints_total) * 100);
+          card.querySelector('.pour-fill').style.width = pct + '%';
+          card.querySelector('.remaining').textContent = Math.round(data.pints_remaining);
+
+          // Flash feedback
+          card.classList.add('poured');
+          setTimeout(() => card.classList.remove('poured'), 400);
+        } catch (err) {
+          alert('Failed to record pour. Try again.');
+        } finally {
+          // Restore button text
+          const labels = { '0.5': 'Half (0.5)', '1': 'Pint (1)', '0.33': 'Third (0.33)' };
+          btn.textContent = labels[amount] || `Pour (${amount})`;
+          btn.disabled = false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

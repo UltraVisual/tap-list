@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - <%= settings.taproom_name %></title>
+  <link rel="stylesheet" href="/public/css/admin.css">
+</head>
+<body>
+  <div class="admin-header">
+    <h1><%= settings.taproom_name %> &mdash; Admin</h1>
+    <nav>
+      <a href="/">View Tap List</a>
+      <a href="/pour">Pour Tracker</a>
+      <a href="/admin/settings">Settings</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <!-- Active Beers -->
+    <div class="section-header">
+      <h2>On Tap</h2>
+      <a href="/admin/beers/new" class="btn btn-primary">+ Add Beer</a>
+    </div>
+
+    <% if (active.length === 0) { %>
+      <p style="color: var(--text-muted); margin-bottom: 2rem;">No beers on tap. Add one or activate a draft.</p>
+    <% } else { %>
+      <table class="beer-table">
+        <thead>
+          <tr>
+            <th>Tap</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Style</th>
+            <th>ABV</th>
+            <th>Pints Left</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% active.forEach(beer => { %>
+            <tr>
+              <td><strong>#<%= beer.tap_number %></strong></td>
+              <td>
+                <% if (beer.image_path) { %>
+                  <img src="<%= beer.image_path %>" class="thumb" alt="">
+                <% } else { %>
+                  <span style="color: var(--text-muted);">--</span>
+                <% } %>
+              </td>
+              <td><strong><%= beer.name %></strong></td>
+              <td><%= beer.style || '--' %></td>
+              <td><%= beer.abv.toFixed(1) %>%</td>
+              <td><%= Math.round(beer.pints_remaining) %> / <%= beer.pints_total %></td>
+              <td class="actions">
+                <a href="/admin/beers/<%= beer.id %>/edit" class="btn btn-outline btn-sm">Edit</a>
+                <form method="POST" action="/admin/beers/<%= beer.id %>/to-draft" style="display:inline">
+                  <button type="submit" class="btn btn-outline btn-sm" title="Move to drafts">To Draft</button>
+                </form>
+                <form method="POST" action="/admin/beers/<%= beer.id %>/delete" style="display:inline"
+                      onsubmit="return confirm('Remove this beer?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <!-- Drafts -->
+    <div class="section-header">
+      <h2>Drafts (Ready to Tap)</h2>
+    </div>
+
+    <% if (drafts.length === 0) { %>
+      <p style="color: var(--text-muted); margin-bottom: 2rem;">No drafts saved. Create a beer and mark it as draft to prepare it for easy switchover.</p>
+    <% } else { %>
+      <table class="beer-table">
+        <thead>
+          <tr>
+            <th>Tap</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Style</th>
+            <th>ABV</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% drafts.forEach(beer => { %>
+            <tr>
+              <td>#<%= beer.tap_number %></td>
+              <td>
+                <% if (beer.image_path) { %>
+                  <img src="<%= beer.image_path %>" class="thumb" alt="">
+                <% } else { %>
+                  <span style="color: var(--text-muted);">--</span>
+                <% } %>
+              </td>
+              <td>
+                <strong><%= beer.name %></strong>
+                <span class="draft-badge">Draft</span>
+              </td>
+              <td><%= beer.style || '--' %></td>
+              <td><%= beer.abv.toFixed(1) %>%</td>
+              <td class="actions">
+                <form method="POST" action="/admin/beers/<%= beer.id %>/activate" style="display:inline">
+                  <button type="submit" class="btn btn-success btn-sm">Put on Tap</button>
+                </form>
+                <a href="/admin/beers/<%= beer.id %>/edit" class="btn btn-outline btn-sm">Edit</a>
+                <form method="POST" action="/admin/beers/<%= beer.id %>/delete" style="display:inline"
+                      onsubmit="return confirm('Remove this beer?')">
+                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</body>
+</html>
