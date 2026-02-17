@@ -137,8 +137,8 @@ export class TaplistStack extends cdk.Stack {
       '(sudo -u ubuntu crontab -l 2>/dev/null || true; echo "0 3 * * * /home/ubuntu/backup.sh") | sudo -u ubuntu crontab -',
     );
 
-    // EC2 instance
-    const instance = new ec2.Instance(this, 'TaplistInstance', {
+    // EC2 instance (changing construct ID forces replacement)
+    const instance = new ec2.Instance(this, 'TaplistInstanceV2', {
       vpc,
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
       machineImage: ami,
