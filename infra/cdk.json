@@ -1,0 +1,9 @@
+{
+  "app": "npx ts-node bin/app.ts",
+  "context": {
+    "connectionArn": "",
+    "repoOwner": "shanejohnson",
+    "repoName": "tap-list",
+    "repoUrl": "https://github.com/shanejohnson/tap-list.git"
+  }
+}
