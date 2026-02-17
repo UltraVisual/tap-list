@@ -48,3 +48,74 @@ The app runs on `http://localhost:3000` by default (set `PORT` env var to change
 - **Multer** — image upload handling
 
 No build step required. No external database to configure.
+
+## Infrastructure (AWS CDK)
+
+The `infra/` directory contains a CDK app that provisions an EC2 instance running the tap list behind Nginx, with S3 backups and an optional CI/CD pipeline.
+
+### Direct Deploy (Local Dev)
+
+```bash
+cd infra
+npm install
+npx cdk deploy TaplistStack -c keyPairName=my-key
+```
+
+This creates the EC2 instance, security group, Elastic IP, backup bucket, and cron job directly from your machine.
+
+### CI/CD Pipeline Setup
+
+A self-mutating CodePipeline can be enabled so that pushing to `main` automatically deploys the stack. This requires a one-time setup:
+
+#### 1. Bootstrap CDK (if not already done)
+
+```bash
+npx cdk bootstrap aws://ACCOUNT_ID/REGION \
+  --cloudformation-execution-policies arn:aws:iam::aws:policy/AdministratorAccess
+```
+
+#### 2. Create a GitHub CodeStar Connection
+
+1. Open the AWS Console → **Developer Tools** → **Settings** → **Connections**
+2. Click **Create connection** → select **GitHub** → authorize access
+3. Copy the Connection ARN (e.g. `arn:aws:codestar-connections:us-east-1:123456789012:connection/...`)
+
+#### 3. Deploy the Pipeline Stack
+
+```bash
+cd infra
+npx cdk deploy TaplistPipelineStack \
+  -c connectionArn=arn:aws:codestar-connections:us-east-1:123456789012:connection/XXXX
+```
+
+You can also pass `-c keyPairName=my-key` if you want SSH access to the instance.
+
+#### 4. Commit `cdk.context.json`
+
+After the first `cdk synth`, CDK writes a `cdk.context.json` file that caches VPC and AMI lookups. Commit this file so that CodeBuild doesn't need `ec2:Describe*` permissions at synth time:
+
+```bash
+git add infra/cdk.context.json
+git commit -m "chore: add CDK context cache"
+```
+
+### After Setup
+
+Every push to `main` triggers the pipeline:
+
+1. **Source** — CodePipeline pulls the latest code via the CodeStar Connection
+2. **Synth** — CodeBuild runs `npm ci && npx cdk synth` in the `infra/` directory
+3. **Self-mutate** — If the pipeline definition changed, it updates itself first
+4. **Deploy** — The TaplistStack is deployed with the latest changes
+
+### Configuration Context Values
+
+These can be passed via `-c key=value` on the CLI or set in `infra/cdk.json`:
+
+| Key | Default | Description |
+|---|---|---|
+| `connectionArn` | `""` | CodeStar Connection ARN (enables pipeline mode when set) |
+| `repoOwner` | `shanejohnson` | GitHub repo owner |
+| `repoName` | `tap-list` | GitHub repo name |
+| `repoUrl` | `https://github.com/shanejohnson/tap-list.git` | Repo URL cloned onto the EC2 instance |
+| `keyPairName` | — | EC2 key pair name for SSH access |
