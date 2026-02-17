@@ -20,7 +20,7 @@ export class PipelineStack extends cdk.Stack {
     const source = CodePipelineSource.connection(
       `${props.repoOwner}/${props.repoName}`,
       props.branch ?? 'main',
-      { connectionArn: props.connectionArn },
+      { connectionArn: props.connectionArn, triggerOnPush: true },
     );
 
     const pipeline = new CodePipeline(this, 'Pipeline', {
