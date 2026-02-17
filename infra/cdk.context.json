@@ -1,1 +1,36 @@
-{}
+{
+  "vpc-provider:account=613520651234:filter.isDefault=true:region=eu-west-2:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-27f86c4f",
+    "vpcCidrBlock": "172.31.0.0/16",
+    "ownerAccountId": "613520651234",
+    "availabilityZones": [],
+    "vpnGatewayId": "vgw-0faf122cb61214d14",
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-896eb5f3",
+            "cidr": "172.31.16.0/20",
+            "availabilityZone": "eu-west-2a",
+            "routeTableId": "rtb-7430711c"
+          },
+          {
+            "subnetId": "subnet-00ce274c",
+            "cidr": "172.31.32.0/20",
+            "availabilityZone": "eu-west-2b",
+            "routeTableId": "rtb-7430711c"
+          },
+          {
+            "subnetId": "subnet-12fd637b",
+            "cidr": "172.31.0.0/20",
+            "availabilityZone": "eu-west-2c",
+            "routeTableId": "rtb-7430711c"
+          }
+        ]
+      }
+    ]
+  },
+  "ami:account=613520651234:filters.image-type.0=machine:filters.name.0=ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*:filters.state.0=available:owners.0=099720109477:region=eu-west-2": "ami-0f19b6377d50fa855"
+}

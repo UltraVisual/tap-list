@@ -115,7 +115,7 @@ These can be passed via `-c key=value` on the CLI or set in `infra/cdk.json`:
 | Key | Default | Description |
 |---|---|---|
 | `connectionArn` | `""` | CodeStar Connection ARN (enables pipeline mode when set) |
-| `repoOwner` | `shanejohnson` | GitHub repo owner |
+| `repoOwner` | `ultravisual` | GitHub repo owner |
 | `repoName` | `tap-list` | GitHub repo name |
-| `repoUrl` | `https://github.com/shanejohnson/tap-list.git` | Repo URL cloned onto the EC2 instance |
+| `repoUrl` | `https://github.com/ultravisual/tap-list.git` | Repo URL cloned onto the EC2 instance |
 | `keyPairName` | — | EC2 key pair name for SSH access |
