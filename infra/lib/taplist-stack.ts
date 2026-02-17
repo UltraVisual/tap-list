@@ -40,6 +40,9 @@ export class TaplistStack extends cdk.Stack {
     // IAM role for EC2 instance
     const role = new iam.Role(this, 'TaplistInstanceRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMManagedInstanceCore'),
+      ],
     });
     bucket.grantPut(role);
 
