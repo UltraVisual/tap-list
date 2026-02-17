@@ -7,12 +7,16 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js"
   },
-  "keywords": ["beer", "taplist", "brewery"],
+  "keywords": [
+    "beer",
+    "taplist",
+    "brewery"
+  ],
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^11.7.0",
     "ejs": "^3.1.10",
     "express": "^4.21.0",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^2.0.2"
   }
 }
