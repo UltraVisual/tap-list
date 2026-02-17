@@ -1,0 +1,298 @@
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #f5f5f5;
+  --card-bg: #fff;
+  --border: #ddd;
+  --text: #333;
+  --text-muted: #777;
+  --accent: #d4851f;
+  --accent-hover: #b8721a;
+  --danger: #e53e3e;
+  --danger-hover: #c53030;
+  --success: #38a169;
+  --success-hover: #2f855a;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Layout ---------- */
+.admin-header {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.admin-header nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.admin-header nav a {
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.admin-header nav a:hover {
+  color: #fff;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ---------- Section Headings ---------- */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  text-decoration: none;
+}
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+
+.btn-success:hover {
+  background: var(--success-hover);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: var(--danger-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-outline:hover {
+  background: #eee;
+}
+
+.btn-sm {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+/* ---------- Beer Table ---------- */
+.beer-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.beer-table th,
+.beer-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.beer-table th {
+  background: #f9f9f9;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.beer-table td {
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.beer-table tr:last-child td {
+  border-bottom: none;
+}
+
+.beer-table .thumb {
+  width: 60px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #eee;
+}
+
+.beer-table .actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.draft-badge {
+  display: inline-block;
+  background: #fef3cd;
+  color: #856404;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* ---------- Form ---------- */
+.form-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  max-width: 700px;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.image-preview {
+  margin-top: 0.5rem;
+}
+
+.image-preview img {
+  max-width: 200px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .beer-table {
+    font-size: 0.85rem;
+  }
+
+  .beer-table .thumb {
+    width: 40px;
+    height: 28px;
+  }
+}

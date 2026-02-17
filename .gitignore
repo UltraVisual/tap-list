@@ -1,0 +1,5 @@
+node_modules/
+data/
+uploads/logo.*
+uploads/beers/*
+!uploads/beers/.gitkeep

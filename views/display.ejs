@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= settings.taproom_name %> - Tap List</title>
+  <link rel="stylesheet" href="/public/css/display.css">
+  <% const themeMap = {
+    dark:       { bg: '#111',    cardBg: '#1a1a1a', cardBorder: '#2a2a2a', text: '#f0f0f0', textMuted: '#999',    accent: '#f5a623' },
+    light:      { bg: '#f5f2eb', cardBg: '#ffffff', cardBorder: '#e0ddd6', text: '#2c2c2c', textMuted: '#777',    accent: '#c8802a' },
+    chalkboard: { bg: '#2b3a2e', cardBg: '#354539', cardBorder: '#445544', text: '#e8e4d8', textMuted: '#a0a89a', accent: '#d4a843' },
+    copper:     { bg: '#1c1210', cardBg: '#2a1e1a', cardBorder: '#3d2e28', text: '#f0e0d0', textMuted: '#b09080', accent: '#cd7f32' },
+    neon:       { bg: '#0a0a14', cardBg: '#12121f', cardBorder: '#1e1e30', text: '#e0e0ff', textMuted: '#8888bb', accent: '#00e5ff' }
+  };
+  const t = themeMap[settings.theme] || themeMap.dark;
+  %>
+  <style>
+    :root {
+      --bg: <%= t.bg %>;
+      --card-bg: <%= t.cardBg %>;
+      --card-border: <%= t.cardBorder %>;
+      --text: <%= t.text %>;
+      --text-muted: <%= t.textMuted %>;
+      --accent: <%= t.accent %>;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <% if (settings.logo_path) { %>
+      <img src="<%= settings.logo_path %>" alt="<%= settings.taproom_name %>" class="logo">
+    <% } else { %>
+      <h1 class="taproom-name"><%= settings.taproom_name %></h1>
+    <% } %>
+    <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle fullscreen">
+      <svg class="fullscreen-icon fullscreen-icon--enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+      </svg>
+      <svg class="fullscreen-icon fullscreen-icon--exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="tap-grid">
+    <% if (beers.length === 0) { %>
+      <div class="empty-state">
+        <p>No beers on tap right now.</p>
+        <p class="subtle">Head to <a href="/admin">/admin</a> to add some.</p>
+      </div>
+    <% } %>
+    <% beers.forEach(beer => { %>
+      <div class="tap-card" data-beer-id="<%= beer.id %>">
+        <div class="tap-number">#<%= beer.tap_number %></div>
+
+        <% if (beer.image_path) { %>
+          <div class="beer-image">
+            <img src="<%= beer.image_path %>" alt="<%= beer.name %>">
+          </div>
+        <% } else { %>
+          <div class="beer-image beer-image--placeholder">
+            <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <rect width="120" height="80" fill="none"/>
+              <text x="60" y="44" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="12">No Image</text>
+            </svg>
+          </div>
+        <% } %>
+
+        <div class="beer-info">
+          <h2 class="beer-name"><%= beer.name %></h2>
+          <% if (beer.style) { %>
+            <span class="beer-style"><%= beer.style %></span>
+          <% } %>
+          <% if (beer.brewery) { %>
+            <span class="beer-brewery"><%= beer.brewery %></span>
+          <% } %>
+          <% if (beer.description) { %>
+            <p class="beer-description"><%= beer.description %></p>
+          <% } %>
+        </div>
+
+        <div class="beer-meta">
+          <span class="beer-abv"><%= beer.abv.toFixed(1) %>% ABV</span>
+          <% if (beer.pints_total > 0) { %>
+            <div class="pints-indicator" title="<%= Math.round(beer.pints_remaining) %> of <%= beer.pints_total %> pints remaining">
+              <div class="pints-bar">
+                <div class="pints-fill" style="width: <%= Math.round((beer.pints_remaining / beer.pints_total) * 100) %>%"></div>
+              </div>
+              <span class="pints-count"><%= Math.round(beer.pints_remaining) %> pints</span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </main>
+
+  <script>
+    // Live-poll beer data every 5 seconds
+    let knownCount = document.querySelectorAll('.tap-card').length;
+
+    async function refreshBeers() {
+      try {
+        const res = await fetch('/api/beers');
+        const beers = await res.json();
+
+        // If taps were added/removed, do a full reload to pick up new cards
+        if (beers.length !== knownCount) {
+          location.reload();
+          return;
+        }
+
+        beers.forEach(beer => {
+          const card = document.querySelector(`.tap-card[data-beer-id="${beer.id}"]`);
+          if (!card) return;
+
+          const fill = card.querySelector('.pints-fill');
+          const count = card.querySelector('.pints-count');
+          const indicator = card.querySelector('.pints-indicator');
+
+          if (fill && beer.pints_total > 0) {
+            const pct = Math.round((beer.pints_remaining / beer.pints_total) * 100);
+            fill.style.width = pct + '%';
+          }
+          if (count) {
+            count.textContent = Math.round(beer.pints_remaining) + ' pints';
+          }
+          if (indicator) {
+            indicator.title = Math.round(beer.pints_remaining) + ' of ' + beer.pints_total + ' pints remaining';
+          }
+        });
+      } catch (e) {
+        // Silently retry on next interval
+      }
+    }
+
+    setInterval(refreshBeers, 5000);
+
+    // Fullscreen toggle
+    const btn = document.getElementById('fullscreenBtn');
+    btn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+    });
+  </script>
+</body>
+</html>
