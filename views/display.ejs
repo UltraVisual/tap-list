@@ -5,6 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= settings.taproom_name %> - Tap List</title>
   <link rel="stylesheet" href="/public/css/display.css">
+  <% const themeMap = {
+    dark:       { bg: '#111',    cardBg: '#1a1a1a', cardBorder: '#2a2a2a', text: '#f0f0f0', textMuted: '#999',    accent: '#f5a623' },
+    light:      { bg: '#f5f2eb', cardBg: '#ffffff', cardBorder: '#e0ddd6', text: '#2c2c2c', textMuted: '#777',    accent: '#c8802a' },
+    chalkboard: { bg: '#2b3a2e', cardBg: '#354539', cardBorder: '#445544', text: '#e8e4d8', textMuted: '#a0a89a', accent: '#d4a843' },
+    copper:     { bg: '#1c1210', cardBg: '#2a1e1a', cardBorder: '#3d2e28', text: '#f0e0d0', textMuted: '#b09080', accent: '#cd7f32' },
+    neon:       { bg: '#0a0a14', cardBg: '#12121f', cardBorder: '#1e1e30', text: '#e0e0ff', textMuted: '#8888bb', accent: '#00e5ff' }
+  };
+  const t = themeMap[settings.theme] || themeMap.dark;
+  %>
+  <style>
+    :root {
+      --bg: <%= t.bg %>;
+      --card-bg: <%= t.cardBg %>;
+      --card-border: <%= t.cardBorder %>;
+      --text: <%= t.text %>;
+      --text-muted: <%= t.textMuted %>;
+      --accent: <%= t.accent %>;
+    }
+  </style>
 </head>
 <body>
   <header class="header">

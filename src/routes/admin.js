@@ -174,13 +174,22 @@ router.get('/settings', (req, res) => {
   res.render('admin/settings');
 });
 
+const VALID_THEMES = ['dark', 'light', 'chalkboard', 'copper', 'neon'];
+
 router.post('/settings', uploadLogo.single('logo'), (req, res) => {
-  const { taproom_name } = req.body;
+  const { taproom_name, theme } = req.body;
 
   if (taproom_name !== undefined) {
     db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
       'taproom_name',
       taproom_name
+    );
+  }
+
+  if (theme && VALID_THEMES.includes(theme)) {
+    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
+      'theme',
+      theme
     );
   }
 

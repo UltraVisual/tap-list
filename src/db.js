@@ -44,5 +44,6 @@ const insertSetting = db.prepare(
 );
 insertSetting.run('taproom_name', 'My Tap Room');
 insertSetting.run('logo_path', '');
+insertSetting.run('theme', 'dark');
 
 module.exports = db;
