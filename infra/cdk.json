@@ -6,5 +6,6 @@
     "repoName": "tap-list",
     "repoUrl": "https://github.com/ultravisual/tap-list.git"
   },
-  "requireApproval": "never"
+  "requireApproval": "never",
+  "watch": {}
 }
