@@ -26,7 +26,6 @@ export class PipelineStack extends cdk.Stack {
 
     const pipeline = new CodePipeline(this, 'Pipeline', {
       codePipeline: new Pipeline(this, 'CodePipeline', {
-        pipelineName: 'TaplistPipeline',
         pipelineType: PipelineType.V2,
       }),
       synth: new ShellStep('Synth', {
