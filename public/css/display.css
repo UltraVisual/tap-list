@@ -161,7 +161,7 @@ html, body {
 /* Beer image */
 .beer-image {
   width: 100%;
-  aspect-ratio: 5 / 2;
+  aspect-ratio: 3 / 2;
   overflow: hidden;
   background: #222;
 }
@@ -337,7 +337,7 @@ html, body {
 }
 
 .is-fullscreen .beer-image {
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 3 / 2;
 }
 
 .is-fullscreen .beer-info {
