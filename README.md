@@ -1,6 +1,6 @@
 # Tap List
 
-A configurable tap list application to display your beer selection on a screen in your tap room, home bar, or brewery.
+A configurable tap list application to display your beer selection on a screen in your tap room, home bar, or brewery!
 
 ## Features
 
