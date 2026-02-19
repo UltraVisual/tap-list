@@ -1,4 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
+import { Pipeline, PipelineType } from 'aws-cdk-lib/aws-codepipeline';
 import { CodePipeline, CodePipelineSource, ShellStep } from 'aws-cdk-lib/pipelines';
 import { Construct } from 'constructs';
 import { TaplistStage } from './taplist-stage';
@@ -24,7 +25,10 @@ export class PipelineStack extends cdk.Stack {
     );
 
     const pipeline = new CodePipeline(this, 'Pipeline', {
-      pipelineName: 'TaplistPipeline',
+      codePipeline: new Pipeline(this, 'CodePipeline', {
+        pipelineName: 'TaplistPipeline',
+        pipelineType: PipelineType.V2,
+      }),
       synth: new ShellStep('Synth', {
         input: source,
         commands: [
