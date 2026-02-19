@@ -2,7 +2,7 @@
   "app": "npx ts-node bin/app.ts",
   "context": {
     "connectionArn": "",
-    "repoOwner": "ultravisual",
+    "repoOwner": "UltraVisual",
     "repoName": "tap-list",
     "repoUrl": "https://github.com/ultravisual/tap-list.git"
   },
