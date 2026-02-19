@@ -8,12 +8,16 @@ export interface TaplistStageProps extends cdk.StageProps {
 }
 
 export class TaplistStage extends cdk.Stage {
+  public readonly instanceIdOutput: cdk.CfnOutput;
+
   constructor(scope: Construct, id: string, props: TaplistStageProps) {
     super(scope, id, props);
 
-    new TaplistStack(this, 'TaplistStack', {
+    const stack = new TaplistStack(this, 'TaplistStack', {
       keyPairName: props.keyPairName,
       repoUrl: props.repoUrl,
     });
+
+    this.instanceIdOutput = stack.instanceIdOutput;
   }
 }

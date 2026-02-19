@@ -10,6 +10,8 @@ interface TaplistStackProps extends cdk.StackProps {
 }
 
 export class TaplistStack extends cdk.Stack {
+  public readonly instanceIdOutput: cdk.CfnOutput;
+
   constructor(scope: Construct, id: string, props: TaplistStackProps) {
     super(scope, id, props);
 
@@ -184,7 +186,7 @@ export class TaplistStack extends cdk.Stack {
       description: 'S3 bucket for backups',
     });
 
-    new cdk.CfnOutput(this, 'InstanceId', {
+    this.instanceIdOutput = new cdk.CfnOutput(this, 'InstanceId', {
       value: instance.instanceId,
       description: 'EC2 instance ID',
     });
