@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= settings.taproom_name %> - Tap List</title>
-  <link rel="stylesheet" href="/public/css/display.css">
+  <link rel="stylesheet" href="/public/css/display.css?v=<%= Date.now() %>">
   <% const themeMap = {
     dark:       { bg: '#111',    cardBg: '#1a1a1a', cardBorder: '#2a2a2a', text: '#f0f0f0', textMuted: '#999',    accent: '#f5a623' },
     light:      { bg: '#f5f2eb', cardBg: '#ffffff', cardBorder: '#e0ddd6', text: '#2c2c2c', textMuted: '#777',    accent: '#c8802a' },
