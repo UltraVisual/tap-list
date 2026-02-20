@@ -60,7 +60,7 @@ export class PipelineStack extends cdk.Stack {
             'COMMAND_ID=$(aws ssm send-command' +
             '  --instance-ids "$INSTANCE_ID"' +
             '  --document-name "AWS-RunShellScript"' +
-            '  --parameters \'{"commands":["sudo -u ubuntu bash -c \\"cd /home/ubuntu/tap-list && git pull && npm install --omit=dev && pm2 restart taplist\\""],"workingDirectory":["/home/ubuntu"],"executionTimeout":["120"]}\''+
+            '  --parameters \'{"commands":["chown -R ubuntu:ubuntu /home/ubuntu/tap-list && sudo -u ubuntu bash -c \\"cd /home/ubuntu/tap-list && git pull && npm install --omit=dev && pm2 restart taplist\\""],"workingDirectory":["/home/ubuntu"],"executionTimeout":["120"]}\''+
             '  --query "Command.CommandId" --output text)',
             'echo "SSM Command ID: $COMMAND_ID"',
             // Poll for completion (up to 2 minutes)
