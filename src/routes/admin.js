@@ -79,9 +79,10 @@ router.get('/beers/:id/edit', (req, res) => {
 
 // ---------- Create beer ----------
 router.post('/beers', uploadBeerImage.single('image'), (req, res) => {
-  const { tap_number, name, description, abv, style, brewery, is_draft, pints_total } = req.body;
+  const { tap_number, name, description, abv, style, brewery, is_draft, pints_total, pints_remaining } = req.body;
   const image_path = req.file ? `/uploads/beers/${req.file.filename}` : '';
   const total = parseFloat(pints_total) || 38;
+  const remaining = Math.min(parseFloat(pints_remaining) || total, total);
 
   db.prepare(`
     INSERT INTO beers (tap_number, name, description, abv, style, brewery, image_path, is_draft, pints_remaining, pints_total)
@@ -95,7 +96,7 @@ router.post('/beers', uploadBeerImage.single('image'), (req, res) => {
     brewery || '',
     image_path,
     is_draft === 'on' || is_draft === '1' ? 1 : 0,
-    total,
+    remaining,
     total
   );
 
@@ -107,17 +108,12 @@ router.post('/beers/:id', uploadBeerImage.single('image'), (req, res) => {
   const beer = db.prepare('SELECT * FROM beers WHERE id = ?').get(req.params.id);
   if (!beer) return res.redirect('/admin');
 
-  const { tap_number, name, description, abv, style, brewery, is_draft, pints_total } = req.body;
+  const { tap_number, name, description, abv, style, brewery, is_draft, pints_total, pints_remaining } = req.body;
   const image_path = req.file
     ? `/uploads/beers/${req.file.filename}`
     : beer.image_path;
   const total = parseFloat(pints_total) || beer.pints_total;
-
-  // If total changed and new total is larger, adjust remaining proportionally
-  let remaining = beer.pints_remaining;
-  if (total !== beer.pints_total) {
-    remaining = total; // reset to full when keg size changes
-  }
+  const remaining = Math.min(Math.max(0, parseFloat(pints_remaining) || beer.pints_remaining), total);
 
   db.prepare(`
     UPDATE beers
