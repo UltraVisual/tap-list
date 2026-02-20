@@ -75,7 +75,7 @@ export class PipelineStack extends cdk.Stack {
             '    Success) echo "Deploy succeeded"; exit 0;;' +
             '    Failed|TimedOut|Cancelled) echo "Deploy failed"; exit 1;;' +
             '  esac;' +
-            'done',
+            'done;' +
             'echo "Timed out waiting for deploy"; exit 1',
           ],
           rolePolicyStatements: [
