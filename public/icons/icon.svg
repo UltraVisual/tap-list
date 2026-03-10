@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1a1a1a"/>
+  <!-- Beer glass -->
+  <path d="M160 100 h192 l-24 312 a24 24 0 0 1-24 20 h-96 a24 24 0 0 1-24-20 Z" fill="#f5a623" opacity="0.9"/>
+  <!-- Foam -->
+  <ellipse cx="256" cy="110" rx="96" ry="24" fill="#fff" opacity="0.95"/>
+  <ellipse cx="220" cy="96" rx="36" ry="18" fill="#fff" opacity="0.9"/>
+  <ellipse cx="290" cy="98" rx="32" ry="16" fill="#fff" opacity="0.9"/>
+  <!-- Glass highlight -->
+  <path d="M185 140 l-12 200" stroke="#fff" stroke-width="8" opacity="0.2" stroke-linecap="round"/>
+  <!-- Tap handle -->
+  <rect x="236" y="40" width="40" height="60" rx="8" fill="#cd7f32"/>
+  <rect x="244" y="24" width="24" height="24" rx="6" fill="#a0622e"/>
+</svg>
