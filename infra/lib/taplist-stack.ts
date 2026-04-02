@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
@@ -78,27 +77,22 @@ export class TaplistStack extends cdk.Stack {
     settingsTable.grantReadWriteData(fn);
     uploadsBucket.grantReadWrite(fn);
 
-    // ---------- API Gateway ----------
-    const api = new apigateway.LambdaRestApi(this, 'TaplistApi', {
-      handler: fn,
-      proxy: true,
-      binaryMediaTypes: ['multipart/form-data', 'image/*'],
-      deployOptions: {
-        stageName: 'prod',
-      },
+    // Lambda Function URL (replaces API Gateway — simpler, no stage prefix, free)
+    const fnUrl = fn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      invokeMode: lambda.InvokeMode.BUFFERED,
     });
 
     // ---------- CloudFront distribution ----------
     const s3Origin = origins.S3BucketOrigin.withOriginAccessControl(uploadsBucket);
 
-    const apiDomainName = `${api.restApiId}.execute-api.${this.region}.amazonaws.com`;
-    const apiOrigin = new origins.HttpOrigin(apiDomainName, {
-      originPath: '/prod',
-    });
+    // Parse the function URL domain (strip https:// and trailing /)
+    const fnUrlDomain = cdk.Fn.select(2, cdk.Fn.split('/', fnUrl.url));
+    const lambdaOrigin = new origins.HttpOrigin(fnUrlDomain);
 
     const distribution = new cloudfront.Distribution(this, 'TaplistCDN', {
       defaultBehavior: {
-        origin: apiOrigin,
+        origin: lambdaOrigin,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -111,7 +105,7 @@ export class TaplistStack extends cdk.Stack {
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         },
         '/public/*': {
-          origin: apiOrigin,
+          origin: lambdaOrigin,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           cachePolicy: new cloudfront.CachePolicy(this, 'StaticCachePolicy', {
             defaultTtl: cdk.Duration.days(7),
@@ -125,9 +119,9 @@ export class TaplistStack extends cdk.Stack {
     });
 
     // ---------- Outputs ----------
-    new cdk.CfnOutput(this, 'ApiUrl', {
-      value: api.url,
-      description: 'API Gateway URL',
+    new cdk.CfnOutput(this, 'FunctionUrl', {
+      value: fnUrl.url,
+      description: 'Lambda Function URL (direct access)',
     });
 
     new cdk.CfnOutput(this, 'CloudFrontUrl', {
