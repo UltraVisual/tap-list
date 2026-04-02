@@ -3,8 +3,7 @@
   "context": {
     "connectionArn": "",
     "repoOwner": "UltraVisual",
-    "repoName": "tap-list",
-    "repoUrl": "https://github.com/ultravisual/tap-list.git"
+    "repoName": "tap-list"
   },
   "requireApproval": "never"
 }

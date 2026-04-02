@@ -1,67 +1,29 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const db = require('../db');
+const { uploadFile } = require('../s3');
 
 const router = express.Router();
 
-// ---------- Multer config for image uploads ----------
-const beerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '..', '..', 'uploads', 'beers');
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `beer-${Date.now()}${ext}`);
-  },
-});
-
-const logoStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '..', '..', 'uploads');
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `logo${ext}`);
-  },
-});
-
-const uploadBeerImage = multer({
-  storage: beerStorage,
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|webp/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype);
-    cb(null, ext && mime);
-  },
-  limits: { fileSize: 10 * 1024 * 1024 },
-});
-
-const uploadLogo = multer({
-  storage: logoStorage,
+// Use memory storage — files go straight to S3, never touch disk
+const upload = multer({
+  storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp|svg/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    cb(null, ext);
+    const ext = allowed.test(
+      require('path').extname(file.originalname).toLowerCase()
+    );
+    const mime = allowed.test(file.mimetype);
+    cb(null, ext || mime);
   },
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 // ---------- Admin dashboard ----------
-router.get('/', (req, res) => {
-  const beers = db
-    .prepare('SELECT * FROM beers WHERE is_active = 1 ORDER BY tap_number ASC')
-    .all();
-  const drafts = db
-    .prepare('SELECT * FROM beers WHERE is_draft = 1 AND is_active = 1 ORDER BY updated_at DESC')
-    .all();
-  const active = db
-    .prepare('SELECT * FROM beers WHERE is_draft = 0 AND is_active = 1 ORDER BY tap_number ASC')
-    .all();
+router.get('/', async (req, res) => {
+  const active = await db.getOnTapBeers();
+  const drafts = await db.getDraftBeers();
+  const beers = await db.getAllActiveBeers();
   res.render('admin/index', { beers, drafts, active });
 });
 
@@ -71,97 +33,87 @@ router.get('/beers/new', (req, res) => {
 });
 
 // ---------- Edit beer form ----------
-router.get('/beers/:id/edit', (req, res) => {
-  const beer = db.prepare('SELECT * FROM beers WHERE id = ?').get(req.params.id);
+router.get('/beers/:id/edit', async (req, res) => {
+  const beer = await db.getBeerById(req.params.id);
   if (!beer) return res.redirect('/admin');
   res.render('admin/beer-form', { beer });
 });
 
 // ---------- Create beer ----------
-router.post('/beers', uploadBeerImage.single('image'), (req, res) => {
+router.post('/beers', upload.single('image'), async (req, res) => {
   const { tap_number, name, description, abv, style, brewery, is_draft, pints_total, pints_remaining } = req.body;
-  const image_path = req.file ? `/uploads/beers/${req.file.filename}` : '';
+  let image_path = '';
+  if (req.file) {
+    image_path = await uploadFile(req.file.buffer, req.file.originalname, 'beers');
+  }
   const total = parseFloat(pints_total) || 38;
   const remaining = Math.min(parseFloat(pints_remaining) || total, total);
 
-  db.prepare(`
-    INSERT INTO beers (tap_number, name, description, abv, style, brewery, image_path, is_draft, pints_remaining, pints_total)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    parseInt(tap_number) || 0,
-    name || 'Untitled',
-    description || '',
-    parseFloat(abv) || 0,
-    style || '',
-    brewery || '',
+  await db.createBeer({
+    tap_number: parseInt(tap_number) || 0,
+    name: name || 'Untitled',
+    description: description || '',
+    abv: parseFloat(abv) || 0,
+    style: style || '',
+    brewery: brewery || '',
     image_path,
-    is_draft === 'on' || is_draft === '1' ? 1 : 0,
-    remaining,
-    total
-  );
+    is_draft: is_draft === 'on' || is_draft === '1' ? 1 : 0,
+    pints_remaining: remaining,
+    pints_total: total,
+  });
 
   res.redirect('/admin');
 });
 
 // ---------- Update beer ----------
-router.post('/beers/:id', uploadBeerImage.single('image'), (req, res) => {
-  const beer = db.prepare('SELECT * FROM beers WHERE id = ?').get(req.params.id);
+router.post('/beers/:id', upload.single('image'), async (req, res) => {
+  const beer = await db.getBeerById(req.params.id);
   if (!beer) return res.redirect('/admin');
 
   const { tap_number, name, description, abv, style, brewery, is_draft, pints_total, pints_remaining } = req.body;
-  const image_path = req.file
-    ? `/uploads/beers/${req.file.filename}`
-    : beer.image_path;
+  let image_path = beer.image_path;
+  if (req.file) {
+    image_path = await uploadFile(req.file.buffer, req.file.originalname, 'beers');
+  }
   const total = parseFloat(pints_total) || beer.pints_total;
   const remaining = Math.min(Math.max(0, parseFloat(pints_remaining) || beer.pints_remaining), total);
 
-  db.prepare(`
-    UPDATE beers
-    SET tap_number = ?, name = ?, description = ?, abv = ?, style = ?, brewery = ?,
-        image_path = ?, is_draft = ?, pints_remaining = ?, pints_total = ?,
-        updated_at = datetime('now')
-    WHERE id = ?
-  `).run(
-    parseInt(tap_number) || 0,
-    name || 'Untitled',
-    description || '',
-    parseFloat(abv) || 0,
-    style || '',
-    brewery || '',
+  await db.updateBeer(req.params.id, {
+    tap_number: parseInt(tap_number) || 0,
+    name: name || 'Untitled',
+    description: description || '',
+    abv: parseFloat(abv) || 0,
+    style: style || '',
+    brewery: brewery || '',
     image_path,
-    is_draft === 'on' || is_draft === '1' ? 1 : 0,
-    remaining,
-    total,
-    req.params.id
-  );
+    is_draft: is_draft === 'on' || is_draft === '1' ? 1 : 0,
+    pints_remaining: remaining,
+    pints_total: total,
+  });
 
   res.redirect('/admin');
 });
 
 // ---------- Delete beer (soft) ----------
-router.post('/beers/:id/delete', (req, res) => {
-  db.prepare('UPDATE beers SET is_active = 0 WHERE id = ?').run(req.params.id);
+router.post('/beers/:id/delete', async (req, res) => {
+  await db.updateBeer(req.params.id, { is_active: 0 });
   res.redirect('/admin');
 });
 
 // ---------- Activate a draft (put it on tap) ----------
-router.post('/beers/:id/activate', (req, res) => {
-  const beer = db.prepare('SELECT * FROM beers WHERE id = ?').get(req.params.id);
+router.post('/beers/:id/activate', async (req, res) => {
+  const beer = await db.getBeerById(req.params.id);
   if (!beer) return res.redirect('/admin');
-
-  db.prepare(`
-    UPDATE beers SET is_draft = 0, pints_remaining = pints_total, updated_at = datetime('now')
-    WHERE id = ?
-  `).run(req.params.id);
-
+  await db.updateBeer(req.params.id, {
+    is_draft: 0,
+    pints_remaining: beer.pints_total,
+  });
   res.redirect('/admin');
 });
 
 // ---------- Move to draft ----------
-router.post('/beers/:id/to-draft', (req, res) => {
-  db.prepare(`
-    UPDATE beers SET is_draft = 1, updated_at = datetime('now') WHERE id = ?
-  `).run(req.params.id);
+router.post('/beers/:id/to-draft', async (req, res) => {
+  await db.updateBeer(req.params.id, { is_draft: 1 });
   res.redirect('/admin');
 });
 
@@ -172,28 +124,20 @@ router.get('/settings', (req, res) => {
 
 const VALID_THEMES = ['dark', 'light', 'chalkboard', 'copper', 'neon'];
 
-router.post('/settings', uploadLogo.single('logo'), (req, res) => {
+router.post('/settings', upload.single('logo'), async (req, res) => {
   const { taproom_name, theme } = req.body;
 
   if (taproom_name !== undefined) {
-    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
-      'taproom_name',
-      taproom_name
-    );
+    await db.putSetting('taproom_name', taproom_name);
   }
 
   if (theme && VALID_THEMES.includes(theme)) {
-    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
-      'theme',
-      theme
-    );
+    await db.putSetting('theme', theme);
   }
 
   if (req.file) {
-    db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)').run(
-      'logo_path',
-      `/uploads/${req.file.filename}`
-    );
+    const logoPath = await uploadFile(req.file.buffer, req.file.originalname, 'logo');
+    await db.putSetting('logo_path', logoPath);
   }
 
   res.redirect('/admin/settings');
