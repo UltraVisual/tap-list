@@ -6,7 +6,7 @@ const BUCKET = process.env.UPLOADS_BUCKET;
 
 async function uploadFile(fileBuffer, originalName, prefix) {
   const ext = path.extname(originalName);
-  const key = `${prefix}/${Date.now()}${ext}`;
+  const key = `uploads/${prefix}/${Date.now()}${ext}`;
 
   await s3.send(
     new PutObjectCommand({
@@ -17,7 +17,8 @@ async function uploadFile(fileBuffer, originalName, prefix) {
     })
   );
 
-  return `/uploads/${key}`;
+  // CloudFront routes /uploads/* to this bucket, so the public URL matches the key
+  return `/${key}`;
 }
 
 function getMimeType(ext) {
