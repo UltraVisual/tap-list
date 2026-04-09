@@ -1,0 +1,55 @@
+# Deploys the TaplistStack to AWS whenever main is updated.
+#
+# One-time setup required (AWS side):
+#   1. Create a GitHub OIDC provider in IAM:
+#        https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+#   2. Create an IAM role trusted by that provider for this repo/branch, e.g.:
+#        Principal: arn:aws:iam::<account>:oidc-provider/token.actions.githubusercontent.com
+#        Condition: token.actions.githubusercontent.com:sub StringEquals
+#                   repo:UltraVisual/tap-list:ref:refs/heads/main
+#   3. Attach permissions for CDK deploy. Simplest: AdministratorAccess, or scoped:
+#        CloudFormation, Lambda, DynamoDB, S3, CloudFront, IAM (PassRole), Logs, SSM.
+#   4. Add the role ARN as a repo variable:
+#        Settings -> Secrets and variables -> Actions -> Variables -> AWS_DEPLOY_ROLE_ARN
+#   5. Add the region as a repo variable (optional, defaults to eu-west-2):
+#        AWS_REGION
+
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install infra dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'eu-west-2' }}
+
+      - name: CDK deploy
+        working-directory: infra
+        run: npx cdk deploy TaplistStack --require-approval never
