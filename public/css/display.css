@@ -367,3 +367,274 @@ html, body {
   padding: 0.4rem 0.8rem 0.5rem;
   margin-top: 0.25rem;
 }
+
+/* ---------- Pour Drawer Toggle Button ---------- */
+.pour-drawer-btn {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 4rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pour-drawer-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pour-drawer-btn:hover,
+.pour-drawer-btn.is-active {
+  background: rgba(245, 166, 35, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.is-fullscreen .pour-drawer-btn {
+  display: flex;
+}
+
+/* ---------- Pour Drawer Overlay ---------- */
+.pour-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.pour-drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- Pour Drawer ---------- */
+.pour-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 380px;
+  max-width: 100vw;
+  height: 100vh;
+  background: #1a1a1a;
+  border-left: 1px solid var(--card-border);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.pour-drawer.is-open {
+  transform: translateX(0);
+}
+
+.pour-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--card-border);
+  flex-shrink: 0;
+}
+
+.pour-drawer-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pour-drawer-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pour-drawer-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.pour-drawer-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pour-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pour-drawer-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pour-drawer-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pour-drawer-body::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 2px;
+}
+
+.pour-drawer-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* ---------- Drawer Cards ---------- */
+.drawer-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: border-color 0.2s;
+}
+
+.drawer-card.poured {
+  border-color: var(--accent);
+}
+
+.drawer-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.drawer-tap {
+  background: var(--accent);
+  color: #111;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.drawer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drawer-style {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.drawer-pints-count {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.drawer-pints-count small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.drawer-bar-wrap {
+  padding: 0 0.1rem;
+}
+
+.drawer-bar {
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.drawer-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--green);
+  transition: width 0.4s ease;
+}
+
+.drawer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.drawer-pour-btn {
+  flex: 1;
+  padding: 0.65rem 0.25rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--card-border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  touch-action: manipulation;
+}
+
+.drawer-pour-btn:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.drawer-pour-btn:active {
+  transform: scale(0.97);
+}
+
+.drawer-pour-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #111;
+}
+
+.drawer-pour-btn--primary:hover {
+  background: #e09520;
+  border-color: #e09520;
+}
+
+.drawer-pour-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
