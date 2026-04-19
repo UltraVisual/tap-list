@@ -11,9 +11,9 @@ process.env.SETTINGS_TABLE = 'TaplistSettings';
 process.env.S3_LOCAL_DIR = require('path').join(__dirname, '..', '.local-uploads');
 process.env.NODE_ENV = 'development';
 
-const { DynamoDBClient, CreateTableCommand, ResourceInUseException } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBClient, CreateTableCommand } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
-const DynamoDBLocal = require('dynamodb-local');
+const { execSync, spawn } = require('child_process');
 
 async function createTable(client, params) {
   try {
@@ -23,9 +23,36 @@ async function createTable(client, params) {
   }
 }
 
+function waitForDynamo(retries = 20, delayMs = 500) {
+  return new Promise((resolve, reject) => {
+    const attempt = (n) => {
+      try {
+        execSync('curl -s http://localhost:8000', { stdio: 'ignore' });
+        resolve();
+      } catch {
+        if (n <= 0) return reject(new Error('DynamoDB Local did not start in time'));
+        setTimeout(() => attempt(n - 1), delayMs);
+      }
+    };
+    attempt(retries);
+  });
+}
+
 async function main() {
-  console.log('Starting DynamoDB Local...');
-  await DynamoDBLocal.launch(8000, null, [], true, true);
+  console.log('Starting DynamoDB Local via Docker...');
+  // Stop any existing container from a previous run
+  execSync('docker rm -f dynamodb-local 2>/dev/null || true', { stdio: 'ignore' });
+  const docker = spawn('docker', [
+    'run', '--rm', '--name', 'dynamodb-local',
+    '-p', '8000:8000',
+    'amazon/dynamodb-local',
+    '-jar', 'DynamoDBLocal.jar', '-inMemory',
+  ], { stdio: 'inherit' });
+  docker.on('error', (e) => { console.error('Docker error:', e.message); process.exit(1); });
+  process.on('exit', () => execSync('docker rm -f dynamodb-local 2>/dev/null || true', { stdio: 'ignore' }));
+  process.on('SIGINT', () => process.exit(0));
+
+  await waitForDynamo();
   console.log('DynamoDB Local running on port 8000');
 
   const dynamo = new DynamoDBClient({
@@ -70,7 +97,13 @@ async function main() {
   console.log('');
 
   // Start Express
-  require('../src/server');
+  const app = require('../src/server');
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Tap List running at http://localhost:${PORT}`);
+    console.log(`Admin panel:  http://localhost:${PORT}/admin`);
+    console.log(`Pour tracker: http://localhost:${PORT}/pour`);
+  });
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
