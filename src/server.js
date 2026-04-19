@@ -14,6 +14,9 @@ app.set('views', path.join(__dirname, '..', 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+if (process.env.S3_LOCAL_DIR) {
+  app.use('/uploads', express.static(path.join(process.env.S3_LOCAL_DIR, 'uploads')));
+}
 
 // Make settings available to all templates
 app.use(async (req, res, next) => {

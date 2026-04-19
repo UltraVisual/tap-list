@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "dev:local": "node scripts/dev.js"
   },
   "keywords": [
     "beer",
@@ -21,5 +22,8 @@
     "ejs": "^3.1.10",
     "express": "^4.21.0",
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "dynamodb-local": "^0.0.38"
   }
 }
