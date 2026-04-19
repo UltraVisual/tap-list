@@ -32,6 +32,13 @@
     <% } else { %>
       <h1 class="taproom-name"><%= settings.taproom_name %></h1>
     <% } %>
+    <button class="pour-drawer-btn" id="pourDrawerBtn" title="Pour tracker">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 3h11l2 9H5z"/>
+        <path d="M16 7h3a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-2"/>
+        <path d="M5 12v9h11v-9"/>
+      </svg>
+    </button>
     <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle fullscreen">
       <svg class="fullscreen-icon fullscreen-icon--enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -94,50 +101,96 @@
     <% }) %>
   </main>
 
+  <div class="pour-drawer-overlay" id="pourDrawerOverlay"></div>
+  <aside class="pour-drawer" id="pourDrawer" aria-label="Pour tracker">
+    <div class="pour-drawer-header">
+      <h2>Pour Tracker</h2>
+      <button class="pour-drawer-close" id="pourDrawerClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="pour-drawer-body">
+      <% if (beers.length === 0) { %>
+        <p class="pour-drawer-empty">No beers on tap.</p>
+      <% } %>
+      <% beers.forEach(beer => { %>
+        <div class="drawer-card" data-beer-id="<%= beer.id %>">
+          <div class="drawer-card-top">
+            <span class="drawer-tap">#<%= beer.tap_number %></span>
+            <div class="drawer-info">
+              <strong class="drawer-name"><%= beer.name %></strong>
+              <% if (beer.style) { %><span class="drawer-style"><%= beer.style %></span><% } %>
+            </div>
+            <% if (beer.pints_total > 0) { %>
+              <span class="drawer-pints-count"><%= Math.round(beer.pints_remaining) %><small>/<%= beer.pints_total %></small></span>
+            <% } %>
+          </div>
+          <% if (beer.pints_total > 0) { %>
+            <div class="drawer-bar-wrap">
+              <div class="drawer-bar">
+                <div class="drawer-fill" style="width: <%= Math.round((beer.pints_remaining / beer.pints_total) * 100) %>%"></div>
+              </div>
+            </div>
+          <% } %>
+          <div class="drawer-actions">
+            <button class="drawer-pour-btn" data-id="<%= beer.id %>" data-amount="0.33">⅓ Pint</button>
+            <button class="drawer-pour-btn" data-id="<%= beer.id %>" data-amount="0.5">½ Pint</button>
+            <button class="drawer-pour-btn drawer-pour-btn--primary" data-id="<%= beer.id %>" data-amount="1">Pint</button>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </aside>
+
   <script>
-    // Live-poll beer data every 5 seconds
+    // ---- Pint display helpers ----
+    function updateBeerPints(beers) {
+      beers.forEach(beer => {
+        const pct = beer.pints_total > 0
+          ? Math.round((beer.pints_remaining / beer.pints_total) * 100)
+          : 0;
+
+        // Main grid card
+        const card = document.querySelector(`.tap-card[data-beer-id="${beer.id}"]`);
+        if (card) {
+          const fill = card.querySelector('.pints-fill');
+          const count = card.querySelector('.pints-count');
+          const indicator = card.querySelector('.pints-indicator');
+          if (fill && beer.pints_total > 0) fill.style.width = pct + '%';
+          if (count) count.textContent = Math.round(beer.pints_remaining) + ' pints';
+          if (indicator) indicator.title = Math.round(beer.pints_remaining) + ' of ' + beer.pints_total + ' pints remaining';
+        }
+
+        // Drawer card
+        const dCard = document.querySelector(`.drawer-card[data-beer-id="${beer.id}"]`);
+        if (dCard) {
+          const fill = dCard.querySelector('.drawer-fill');
+          const count = dCard.querySelector('.drawer-pints-count');
+          if (fill && beer.pints_total > 0) fill.style.width = pct + '%';
+          if (count) count.innerHTML = Math.round(beer.pints_remaining) + '<small>/' + beer.pints_total + '</small>';
+        }
+      });
+    }
+
+    // ---- Live poll ----
     let knownCount = document.querySelectorAll('.tap-card').length;
 
     async function refreshBeers() {
       try {
         const res = await fetch('/api/beers');
         const beers = await res.json();
-
-        // If taps were added/removed, do a full reload to pick up new cards
-        if (beers.length !== knownCount) {
-          location.reload();
-          return;
-        }
-
-        beers.forEach(beer => {
-          const card = document.querySelector(`.tap-card[data-beer-id="${beer.id}"]`);
-          if (!card) return;
-
-          const fill = card.querySelector('.pints-fill');
-          const count = card.querySelector('.pints-count');
-          const indicator = card.querySelector('.pints-indicator');
-
-          if (fill && beer.pints_total > 0) {
-            const pct = Math.round((beer.pints_remaining / beer.pints_total) * 100);
-            fill.style.width = pct + '%';
-          }
-          if (count) {
-            count.textContent = Math.round(beer.pints_remaining) + ' pints';
-          }
-          if (indicator) {
-            indicator.title = Math.round(beer.pints_remaining) + ' of ' + beer.pints_total + ' pints remaining';
-          }
-        });
-      } catch (e) {
-        // Silently retry on next interval
-      }
+        if (beers.length !== knownCount) { location.reload(); return; }
+        updateBeerPints(beers);
+      } catch (e) {}
     }
 
     setInterval(refreshBeers, 5000);
 
-    // Fullscreen toggle
-    const btn = document.getElementById('fullscreenBtn');
-    btn.addEventListener('click', () => {
+    // ---- Fullscreen toggle ----
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    fullscreenBtn.addEventListener('click', () => {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen();
       } else {
@@ -147,6 +200,66 @@
 
     document.addEventListener('fullscreenchange', () => {
       document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+    });
+
+    // ---- Pour drawer ----
+    const drawer = document.getElementById('pourDrawer');
+    const overlay = document.getElementById('pourDrawerOverlay');
+    const drawerToggleBtn = document.getElementById('pourDrawerBtn');
+    const drawerCloseBtn = document.getElementById('pourDrawerClose');
+
+    function openDrawer() {
+      drawer.classList.add('is-open');
+      overlay.classList.add('is-open');
+      drawerToggleBtn.classList.add('is-active');
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove('is-open');
+      overlay.classList.remove('is-open');
+      drawerToggleBtn.classList.remove('is-active');
+    }
+
+    drawerToggleBtn.addEventListener('click', () => {
+      drawer.classList.contains('is-open') ? closeDrawer() : openDrawer();
+    });
+    drawerCloseBtn.addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+
+    // Close on Escape
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer();
+    });
+
+    // ---- Pour actions in drawer ----
+    drawer.querySelectorAll('.drawer-pour-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.id;
+        const amount = parseFloat(btn.dataset.amount);
+        const allBtns = btn.closest('.drawer-actions').querySelectorAll('.drawer-pour-btn');
+
+        allBtns.forEach(b => b.disabled = true);
+
+        try {
+          const res = await fetch(`/api/beers/${id}/pour`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount }),
+          });
+          if (!res.ok) throw new Error();
+
+          const data = await res.json();
+          updateBeerPints([data]);
+
+          const card = btn.closest('.drawer-card');
+          card.classList.add('poured');
+          setTimeout(() => card.classList.remove('poured'), 400);
+        } catch {
+          alert('Failed to record pour. Try again.');
+        } finally {
+          allBtns.forEach(b => b.disabled = false);
+        }
+      });
     });
   </script>
 </body>
