@@ -57,7 +57,7 @@
       </div>
     <% } %>
     <% beers.forEach(beer => { %>
-      <div class="tap-card" data-beer-id="<%= beer.id %>">
+      <div class="tap-card<%= (beer.pints_total > 0 && beer.pints_remaining <= 0) ? ' is-empty' : '' %>" data-beer-id="<%= beer.id %>">
         <div class="tap-number">#<%= beer.tap_number %></div>
 
         <% if (beer.image_path) { %>
@@ -161,6 +161,7 @@
           if (fill && beer.pints_total > 0) fill.style.width = pct + '%';
           if (count) count.textContent = Math.round(beer.pints_remaining) + ' pints';
           if (indicator) indicator.title = Math.round(beer.pints_remaining) + ' of ' + beer.pints_total + ' pints remaining';
+          card.classList.toggle('is-empty', beer.pints_total > 0 && beer.pints_remaining <= 0);
         }
 
         // Drawer card
