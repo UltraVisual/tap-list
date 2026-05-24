@@ -299,6 +299,10 @@ html, body {
   overflow: hidden;
 }
 
+.tap-card.is-coming-soon img {
+  opacity: 0.7;
+}
+
 .coming-soon-ribbon {
   position: absolute;
   top: 57px;
