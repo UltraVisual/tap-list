@@ -296,8 +296,6 @@ html, body {
 
 /* ---------- Coming Soon ---------- */
 .tap-card.is-coming-soon {
-  border-color: var(--accent);
-  border-width: 2px;
   overflow: hidden;
 }
 
