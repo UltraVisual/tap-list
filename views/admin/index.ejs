@@ -44,12 +44,15 @@
               <td><strong>#<%= beer.tap_number %></strong></td>
               <td>
                 <% if (beer.image_path) { %>
-                  <img src="<%= beer.image_path %>" class="thumb" alt="">
+                  <img src="<%= baseUrl %><%= beer.image_path %>" class="thumb" alt="">
                 <% } else { %>
                   <span style="color: var(--text-muted);">--</span>
                 <% } %>
               </td>
-              <td><strong><%= beer.name %></strong></td>
+              <td>
+                <strong><%= beer.name %></strong>
+                <% if (beer.is_coming_soon) { %><span class="coming-soon-badge">Coming Soon</span><% } %>
+              </td>
               <td><%= beer.style || '--' %></td>
               <td><%= beer.abv.toFixed(1) %>%</td>
               <td><%= Math.round(beer.pints_remaining) %> / <%= beer.pints_total %></td>
@@ -94,7 +97,7 @@
               <td>#<%= beer.tap_number %></td>
               <td>
                 <% if (beer.image_path) { %>
-                  <img src="<%= beer.image_path %>" class="thumb" alt="">
+                  <img src="<%= baseUrl %><%= beer.image_path %>" class="thumb" alt="">
                 <% } else { %>
                   <span style="color: var(--text-muted);">--</span>
                 <% } %>

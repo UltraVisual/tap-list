@@ -63,7 +63,7 @@
           <input type="file" id="image" name="image" accept="image/*">
           <% if (beer && beer.image_path) { %>
             <div class="image-preview">
-              <img src="<%= beer.image_path %>" alt="Current image">
+              <img src="<%= baseUrl %><%= beer.image_path %>" alt="Current image">
               <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Upload a new image to replace</p>
             </div>
           <% } %>
@@ -87,6 +87,11 @@
             <input type="checkbox" id="is_draft" name="is_draft"
                    <%= (beer && beer.is_draft) ? 'checked' : '' %>>
             <label for="is_draft">Save as draft (don't show on display yet)</label>
+          </div>
+          <div class="form-check" style="margin-top: 0.5rem;">
+            <input type="checkbox" id="is_coming_soon" name="is_coming_soon"
+                   <%= (beer && beer.is_coming_soon) ? 'checked' : '' %>>
+            <label for="is_coming_soon">Coming soon (show on display as upcoming)</label>
           </div>
         </div>
 

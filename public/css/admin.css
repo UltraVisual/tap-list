@@ -200,6 +200,17 @@ a:hover {
   border-radius: 4px;
 }
 
+.coming-soon-badge {
+  display: inline-block;
+  background: #d4edda;
+  color: #155724;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  margin-left: 0.35rem;
+}
+
 /* ---------- Form ---------- */
 .form-card {
   background: var(--card-bg);

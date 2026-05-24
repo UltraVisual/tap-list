@@ -18,6 +18,7 @@ app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 // Make settings available to all templates
 app.use(async (req, res, next) => {
   res.locals.settings = await db.getSettings();
+  res.locals.baseUrl = process.env.BASE_URL || '';
   next();
 });
 
