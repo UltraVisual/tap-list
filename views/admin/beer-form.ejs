@@ -88,6 +88,11 @@
                    <%= (beer && beer.is_draft) ? 'checked' : '' %>>
             <label for="is_draft">Save as draft (don't show on display yet)</label>
           </div>
+          <div class="form-check" style="margin-top: 0.5rem;">
+            <input type="checkbox" id="is_coming_soon" name="is_coming_soon"
+                   <%= (beer && beer.is_coming_soon) ? 'checked' : '' %>>
+            <label for="is_coming_soon">Coming soon (show on display as upcoming)</label>
+          </div>
         </div>
 
         <div class="form-actions">

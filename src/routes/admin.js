@@ -41,7 +41,7 @@ router.get('/beers/:id/edit', async (req, res) => {
 
 // ---------- Create beer ----------
 router.post('/beers', upload.single('image'), async (req, res) => {
-  const { tap_number, name, description, abv, style, brewery, is_draft, pints_total, pints_remaining } = req.body;
+  const { tap_number, name, description, abv, style, brewery, is_draft, is_coming_soon, pints_total, pints_remaining } = req.body;
   let image_path = '';
   if (req.file) {
     image_path = await uploadFile(req.file.buffer, req.file.originalname, 'beers');
@@ -58,6 +58,7 @@ router.post('/beers', upload.single('image'), async (req, res) => {
     brewery: brewery || '',
     image_path,
     is_draft: is_draft === 'on' || is_draft === '1' ? 1 : 0,
+    is_coming_soon: is_coming_soon === 'on' || is_coming_soon === '1' ? 1 : 0,
     pints_remaining: remaining,
     pints_total: total,
   });
@@ -70,7 +71,7 @@ router.post('/beers/:id', upload.single('image'), async (req, res) => {
   const beer = await db.getBeerById(req.params.id);
   if (!beer) return res.redirect('/admin');
 
-  const { tap_number, name, description, abv, style, brewery, is_draft, pints_total, pints_remaining } = req.body;
+  const { tap_number, name, description, abv, style, brewery, is_draft, is_coming_soon, pints_total, pints_remaining } = req.body;
   let image_path = beer.image_path;
   if (req.file) {
     image_path = await uploadFile(req.file.buffer, req.file.originalname, 'beers');
@@ -87,6 +88,7 @@ router.post('/beers/:id', upload.single('image'), async (req, res) => {
     brewery: brewery || '',
     image_path,
     is_draft: is_draft === 'on' || is_draft === '1' ? 1 : 0,
+    is_coming_soon: is_coming_soon === 'on' || is_coming_soon === '1' ? 1 : 0,
     pints_remaining: remaining,
     pints_total: total,
   });
@@ -106,6 +108,7 @@ router.post('/beers/:id/activate', async (req, res) => {
   if (!beer) return res.redirect('/admin');
   await db.updateBeer(req.params.id, {
     is_draft: 0,
+    is_coming_soon: 0,
     pints_remaining: beer.pints_total,
   });
   res.redirect('/admin');

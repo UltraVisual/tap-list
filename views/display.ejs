@@ -57,8 +57,11 @@
       </div>
     <% } %>
     <% beers.forEach(beer => { %>
-      <div class="tap-card<%= (beer.pints_total > 0 && beer.pints_remaining <= 0) ? ' is-empty' : '' %>" data-beer-id="<%= beer.id %>">
+      <div class="tap-card<%= beer.is_coming_soon ? ' is-coming-soon' : (beer.pints_total > 0 && beer.pints_remaining <= 0) ? ' is-empty' : '' %>" data-beer-id="<%= beer.id %>">
         <div class="tap-number">#<%= beer.tap_number %></div>
+        <% if (beer.is_coming_soon) { %>
+          <div class="coming-soon-ribbon">COMING SOON</div>
+        <% } %>
 
         <% if (beer.image_path) { %>
           <div class="beer-image">
@@ -87,14 +90,19 @@
         </div>
 
         <div class="beer-meta">
-          <span class="beer-abv"><%= beer.abv.toFixed(1) %>% ABV</span>
-          <% if (beer.pints_total > 0) { %>
-            <div class="pints-indicator" title="<%= Math.round(beer.pints_remaining) %> of <%= beer.pints_total %> pints remaining">
-              <div class="pints-bar">
-                <div class="pints-fill" style="width: <%= Math.round((beer.pints_remaining / beer.pints_total) * 100) %>%"></div>
+          <% if (beer.is_coming_soon) { %>
+            <span class="beer-abv"><%= beer.abv.toFixed(1) %>% ABV</span>
+            <span class="coming-soon-label">Fermenting</span>
+          <% } else { %>
+            <span class="beer-abv"><%= beer.abv.toFixed(1) %>% ABV</span>
+            <% if (beer.pints_total > 0) { %>
+              <div class="pints-indicator" title="<%= Math.round(beer.pints_remaining) %> of <%= beer.pints_total %> pints remaining">
+                <div class="pints-bar">
+                  <div class="pints-fill" style="width: <%= Math.round((beer.pints_remaining / beer.pints_total) * 100) %>%"></div>
+                </div>
+                <span class="pints-count"><%= Math.round(beer.pints_remaining) %> pints</span>
               </div>
-              <span class="pints-count"><%= Math.round(beer.pints_remaining) %> pints</span>
-            </div>
+            <% } %>
           <% } %>
         </div>
       </div>
@@ -115,7 +123,7 @@
       <% if (beers.length === 0) { %>
         <p class="pour-drawer-empty">No beers on tap.</p>
       <% } %>
-      <% beers.forEach(beer => { %>
+      <% beers.filter(b => !b.is_coming_soon).forEach(beer => { %>
         <div class="drawer-card" data-beer-id="<%= beer.id %>">
           <div class="drawer-card-top">
             <span class="drawer-tap">#<%= beer.tap_number %></span>

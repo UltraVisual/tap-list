@@ -102,6 +102,7 @@ async function createBeer(beer) {
     pints_remaining: beer.pints_remaining != null ? beer.pints_remaining : (beer.pints_total || 38),
     pints_total: beer.pints_total || 38,
     is_draft: beer.is_draft || 0,
+    is_coming_soon: beer.is_coming_soon || 0,
     is_active: 1,
     created_at: now,
     updated_at: now,

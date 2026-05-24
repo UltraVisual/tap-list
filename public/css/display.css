@@ -294,6 +294,36 @@ html, body {
   box-shadow: none;
 }
 
+/* ---------- Coming Soon ---------- */
+.tap-card.is-coming-soon {
+  border-color: var(--accent);
+  border-width: 2px;
+  overflow: hidden;
+}
+
+.coming-soon-ribbon {
+  position: absolute;
+  top: 18px;
+  right: -35px;
+  background: var(--accent);
+  color: #111;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.3rem 2.5rem;
+  transform: rotate(45deg);
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.coming-soon-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-style: italic;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 480px) {
   .tap-card {
