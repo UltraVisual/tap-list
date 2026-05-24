@@ -63,7 +63,7 @@
           <input type="file" id="image" name="image" accept="image/*">
           <% if (beer && beer.image_path) { %>
             <div class="image-preview">
-              <img src="<%= beer.image_path %>" alt="Current image">
+              <img src="<%= baseUrl %><%= beer.image_path %>" alt="Current image">
               <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Upload a new image to replace</p>
             </div>
           <% } %>

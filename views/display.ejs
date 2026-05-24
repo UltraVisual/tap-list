@@ -28,7 +28,7 @@
 <body>
   <header class="header">
     <% if (settings.logo_path) { %>
-      <img src="<%= settings.logo_path %>" alt="<%= settings.taproom_name %>" class="logo">
+      <img src="<%= baseUrl %><%= settings.logo_path %>" alt="<%= settings.taproom_name %>" class="logo">
     <% } else { %>
       <h1 class="taproom-name"><%= settings.taproom_name %></h1>
     <% } %>
@@ -65,7 +65,7 @@
 
         <% if (beer.image_path) { %>
           <div class="beer-image">
-            <img src="<%= beer.image_path %>" alt="<%= beer.name %>">
+            <img src="<%= baseUrl %><%= beer.image_path %>" alt="<%= beer.name %>">
           </div>
         <% } else { %>
           <div class="beer-image beer-image--placeholder">
@@ -184,11 +184,12 @@
     }
 
     // ---- Live poll ----
+    const BASE = '<%= baseUrl %>';
     let knownCount = document.querySelectorAll('.tap-card').length;
 
     async function refreshBeers() {
       try {
-        const res = await fetch('/api/beers');
+        const res = await fetch(BASE + '/api/beers');
         const beers = await res.json();
         if (beers.length !== knownCount) { location.reload(); return; }
         updateBeerPints(beers);
@@ -250,7 +251,7 @@
         allBtns.forEach(b => b.disabled = true);
 
         try {
-          const res = await fetch(`/api/beers/${id}/pour`, {
+          const res = await fetch(`${BASE}/api/beers/${id}/pour`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount }),

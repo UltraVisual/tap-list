@@ -44,7 +44,7 @@
               <td><strong>#<%= beer.tap_number %></strong></td>
               <td>
                 <% if (beer.image_path) { %>
-                  <img src="<%= beer.image_path %>" class="thumb" alt="">
+                  <img src="<%= baseUrl %><%= beer.image_path %>" class="thumb" alt="">
                 <% } else { %>
                   <span style="color: var(--text-muted);">--</span>
                 <% } %>
@@ -97,7 +97,7 @@
               <td>#<%= beer.tap_number %></td>
               <td>
                 <% if (beer.image_path) { %>
-                  <img src="<%= beer.image_path %>" class="thumb" alt="">
+                  <img src="<%= baseUrl %><%= beer.image_path %>" class="thumb" alt="">
                 <% } else { %>
                   <span style="color: var(--text-muted);">--</span>
                 <% } %>
