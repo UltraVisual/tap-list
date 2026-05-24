@@ -113,6 +113,7 @@ export class TaplistStack extends cdk.Stack {
             minTtl: cdk.Duration.hours(1),
             enableAcceptEncodingGzip: true,
             enableAcceptEncodingBrotli: true,
+            queryStringBehavior: cloudfront.CacheQueryStringBehavior.all(),
           }),
         },
       },
