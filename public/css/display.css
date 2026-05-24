@@ -301,7 +301,7 @@ html, body {
 
 .coming-soon-ribbon {
   position: absolute;
-  top: 32px;
+  top: 57px;
   right: -45px;
   background: var(--accent);
   color: #111;
