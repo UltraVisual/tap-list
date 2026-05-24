@@ -15,14 +15,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 
-// In remote dev mode, proxy /uploads/* to CloudFront so images load locally
-if (process.env.CLOUDFRONT_DOMAIN) {
-  const cfDomain = process.env.CLOUDFRONT_DOMAIN.replace(/\/+$/, '');
-  app.use('/uploads', (req, res) => {
-    res.redirect(`https://${cfDomain}/uploads${req.url}`);
-  });
-}
-
 // Make settings available to all templates
 app.use(async (req, res, next) => {
   res.locals.settings = await db.getSettings();
