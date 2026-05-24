@@ -303,15 +303,16 @@ html, body {
 
 .coming-soon-ribbon {
   position: absolute;
-  top: 18px;
-  right: -35px;
+  top: 32px;
+  right: -45px;
   background: var(--accent);
   color: #111;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 0.3rem 2.5rem;
+  text-align: center;
+  padding: 0.45rem 3.5rem;
   transform: rotate(45deg);
   z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
