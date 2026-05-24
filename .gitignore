@@ -4,3 +4,4 @@ uploads/logo.*
 uploads/beers/*
 !uploads/beers/.gitkeep
 cdk.out/
+.env.remote
