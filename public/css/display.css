@@ -22,8 +22,14 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Oxygen, Ubuntu, sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ---------- Cache badge ---------- */
@@ -65,21 +71,22 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1.25rem 1rem;
+  padding: 0.6rem 1rem;
   background: linear-gradient(180deg, #1a1a1a 0%, var(--bg) 100%);
   border-bottom: 2px solid var(--accent);
   position: relative;
+  flex-shrink: 0;
 }
 
 .logo {
-  max-height: 210px;
+  max-height: 100px;
   max-width: 80vw;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(245, 166, 35, 0.25));
 }
 
 .taproom-name {
-  font-size: 3rem;
+  font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--accent);
@@ -87,11 +94,12 @@ html, body {
   text-shadow: 0 2px 12px rgba(245, 166, 35, 0.3);
 }
 
-/* ---------- Fullscreen Button ---------- */
-.fullscreen-btn {
+/* ---------- Header buttons ---------- */
+.fullscreen-btn,
+.pour-drawer-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
@@ -105,12 +113,25 @@ html, body {
   transition: background 0.2s, color 0.2s;
 }
 
-.fullscreen-btn:hover {
+.fullscreen-btn { right: 1rem; }
+.pour-drawer-btn { right: 4rem; }
+
+.fullscreen-btn:hover,
+.pour-drawer-btn:hover,
+.pour-drawer-btn.is-active {
   background: rgba(255, 255, 255, 0.15);
   color: var(--text);
 }
 
-.fullscreen-icon {
+.pour-drawer-btn:hover,
+.pour-drawer-btn.is-active {
+  background: rgba(245, 166, 35, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.fullscreen-icon,
+.pour-drawer-btn svg {
   width: 20px;
   height: 20px;
 }
@@ -129,26 +150,27 @@ html, body {
 
 /* ---------- Tap Grid ---------- */
 .tap-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
   max-width: 1600px;
   margin: 0 auto;
-}
-
-.tap-card {
-  width: calc(33.333% - 0.75rem);
-  min-width: 300px;
+  width: 100%;
+  align-content: stretch;
 }
 
 .empty-state {
-  width: 100%;
+  grid-column: 1 / -1;
   text-align: center;
   padding: 4rem 1rem;
   color: var(--text-muted);
   font-size: 1.2rem;
+  align-self: center;
 }
 
 .empty-state .subtle {
@@ -169,6 +191,8 @@ html, body {
   display: flex;
   flex-direction: column;
   position: relative;
+  min-width: 0;
+  min-height: 0;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -180,24 +204,26 @@ html, body {
 /* Tap number badge */
 .tap-number {
   position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
+  top: 0.5rem;
+  left: 0.5rem;
   background: var(--accent);
   color: #111;
   font-weight: 800;
-  font-size: 1rem;
-  padding: 0.3rem 0.65rem;
+  font-size: 0.9rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 6px;
   z-index: 2;
   letter-spacing: 0.02em;
 }
 
-/* Beer image */
+/* Beer image — keeps 3:2 aspect and shrinks to fit if the card is short */
 .beer-image {
   width: 100%;
   aspect-ratio: 3 / 2;
   overflow: hidden;
   background: #222;
+  flex: 0 1 auto;
+  min-height: 0;
 }
 
 .beer-image img {
@@ -219,20 +245,22 @@ html, body {
 
 /* Beer info */
 .beer-info {
-  padding: 0.6rem 1rem 0.3rem;
-  flex: 1;
+  padding: 0.4rem 0.8rem 0.2rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .beer-name {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1.2;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .beer-style {
   display: inline-block;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--accent);
   font-weight: 500;
   margin-right: 0.5rem;
@@ -240,15 +268,15 @@ html, body {
 
 .beer-brewery {
   display: inline-block;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
 .beer-description {
-  margin-top: 0.3rem;
-  font-size: 0.85rem;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -257,18 +285,19 @@ html, body {
 
 /* Beer meta (ABV + pints) */
 .beer-meta {
-  padding: 0.5rem 1rem 0.6rem;
+  padding: 0.4rem 0.8rem 0.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   border-top: 1px solid var(--card-border);
-  margin-top: 0.3rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 .beer-abv {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--accent);
   white-space: nowrap;
 }
@@ -284,7 +313,7 @@ html, body {
 
 .pints-bar {
   flex: 1;
-  height: 8px;
+  height: 7px;
   background: #333;
   border-radius: 4px;
   overflow: hidden;
@@ -312,7 +341,7 @@ html, body {
 }
 
 .pints-count {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -339,145 +368,47 @@ html, body {
 
 .coming-soon-ribbon {
   position: absolute;
-  top: 57px;
-  right: -45px;
+  top: 42px;
+  right: -50px;
   background: var(--accent);
   color: #111;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-align: center;
-  padding: 0.45rem 3.5rem;
+  padding: 0.4rem 3.5rem;
   transform: rotate(45deg);
   z-index: 3;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .coming-soon-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--accent);
   font-style: italic;
 }
 
 /* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .tap-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 480px) {
-  .tap-card {
-    width: 100%;
-    min-width: 0;
+  .tap-grid {
+    grid-template-columns: 1fr;
   }
 
   .taproom-name {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   .logo {
-    max-height: 120px;
+    max-height: 70px;
   }
-}
-
-/* ---------- Fullscreen ---------- */
-.is-fullscreen {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.is-fullscreen .header {
-  flex-shrink: 0;
-  padding: 1rem;
-}
-
-.is-fullscreen .logo {
-  max-height: 210px;
-}
-
-.is-fullscreen .taproom-name {
-  font-size: 2.5rem;
-}
-
-.is-fullscreen .tap-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: stretch;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  max-width: 100%;
-  padding: 1rem 2rem;
-  gap: 1rem;
-}
-
-.is-fullscreen .tap-card {
-  width: calc(33.333% - 0.75rem);
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.is-fullscreen .beer-image {
-  aspect-ratio: auto;
-  flex: 1 1 0;
-  min-height: 0;
-}
-
-.is-fullscreen .beer-info {
-  padding: 0.5rem 0.8rem 0.25rem;
-  flex: 0 0 auto;
-}
-
-.is-fullscreen .beer-name {
-  font-size: 1.15rem;
-}
-
-.is-fullscreen .beer-description {
-  font-size: 0.8rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.is-fullscreen .beer-meta {
-  padding: 0.4rem 0.8rem 0.5rem;
-  margin-top: 0.25rem;
-}
-
-/* ---------- Pour Drawer Toggle Button ---------- */
-.pour-drawer-btn {
-  display: none;
-  position: absolute;
-  top: 1rem;
-  right: 4rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  color: var(--text-muted);
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, color 0.2s;
-}
-
-.pour-drawer-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.pour-drawer-btn:hover,
-.pour-drawer-btn.is-active {
-  background: rgba(245, 166, 35, 0.2);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.is-fullscreen .pour-drawer-btn {
-  display: flex;
 }
 
 /* ---------- Pour Drawer Overlay ---------- */
