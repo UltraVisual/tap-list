@@ -38,4 +38,17 @@ router.post('/beers/:id/reset-pints', async (req, res) => {
   res.json(updated);
 });
 
+// ---------- Client logs (batched) ----------
+router.post('/logs', async (req, res) => {
+  try {
+    const entries = Array.isArray(req.body) ? req.body : (req.body && req.body.entries) || [];
+    const ua = req.get('user-agent') || '';
+    const stamped = entries.slice(0, 100).map(e => ({ ...e, user_agent: e.user_agent || ua }));
+    const n = await db.writeLogs(stamped);
+    res.json({ written: n });
+  } catch (e) {
+    res.status(500).json({ error: String(e && e.message || e) });
+  }
+});
+
 module.exports = router;

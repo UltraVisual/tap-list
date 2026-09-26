@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logs - <%= settings.taproom_name %></title>
+  <link rel="stylesheet" href="/public/css/admin.css">
+  <style>
+    .log-toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    .log-toolbar a { padding: 0.35rem 0.75rem; border: 1px solid var(--card-border); border-radius: 4px; text-decoration: none; color: var(--text); font-size: 0.85rem; }
+    .log-toolbar a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; font-family: ui-monospace, Menlo, monospace; }
+    .log-table th, .log-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--card-border); vertical-align: top; text-align: left; }
+    .log-table th { background: var(--card-bg); font-weight: 600; position: sticky; top: 0; }
+    .log-row-error   { background: rgba(220, 53, 69, 0.06); }
+    .log-row-warn    { background: rgba(255, 193, 7, 0.06); }
+    .log-type-badge  { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .log-type-error     { background: #dc3545; color: #fff; }
+    .log-type-warn      { background: #ffc107; color: #333; }
+    .log-type-rejection { background: #dc3545; color: #fff; }
+    .log-type-heartbeat { background: #6c757d; color: #fff; }
+    .log-type-info      { background: #17a2b8; color: #fff; }
+    .log-type-poll_fail { background: #fd7e14; color: #fff; }
+    .log-msg { max-width: 480px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .log-stack { color: var(--text-muted); font-size: 0.72rem; max-width: 420px; overflow-wrap: anywhere; white-space: pre-wrap; margin-top: 0.25rem; }
+    .log-meta { color: var(--text-muted); font-size: 0.72rem; }
+    .log-empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .mem-cell { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <div class="admin-header">
+    <h1><%= settings.taproom_name %> &mdash; Logs</h1>
+    <nav>
+      <a href="/admin">&larr; Admin</a>
+      <a href="/">View Tap List</a>
+    </nav>
+  </div>
+
+  <div class="container">
+    <div class="log-toolbar">
+      <a href="/admin/logs" class="<%= !filter ? 'active' : '' %>">All</a>
+      <a href="/admin/logs?type=error" class="<%= filter === 'error' ? 'active' : '' %>">Errors</a>
+      <a href="/admin/logs?type=rejection" class="<%= filter === 'rejection' ? 'active' : '' %>">Rejections</a>
+      <a href="/admin/logs?type=poll_fail" class="<%= filter === 'poll_fail' ? 'active' : '' %>">Poll Fails</a>
+      <a href="/admin/logs?type=heartbeat" class="<%= filter === 'heartbeat' ? 'active' : '' %>">Heartbeats</a>
+      <span style="margin-left: auto; color: var(--text-muted); font-size: 0.85rem;">
+        <%= logs.length %> entries · auto-refresh 15s
+      </span>
+    </div>
+
+    <% if (logs.length === 0) { %>
+      <div class="log-empty">No log entries yet. They will appear as events are recorded.</div>
+    <% } else { %>
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Message</th>
+            <th>JS Heap (used / limit)</th>
+            <th>Client</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logs.forEach(l => { %>
+            <% const cls = l.type === 'error' || l.type === 'rejection' ? 'log-row-error' : (l.type === 'warn' ? 'log-row-warn' : ''); %>
+            <tr class="<%= cls %>">
+              <td class="log-meta">
+                <% const d = new Date(Number(l.ts) || 0); %>
+                <%= d.toISOString().replace('T', ' ').slice(0, 19) %>
+              </td>
+              <td><span class="log-type-badge log-type-<%= l.type %>"><%= l.type %></span></td>
+              <td>
+                <div class="log-msg"><%= l.message || '' %></div>
+                <% if (l.stack) { %><div class="log-stack"><%= l.stack %></div><% } %>
+                <% if (l.url) { %><div class="log-meta">at <%= l.url %></div><% } %>
+                <% if (l.extra) { %><div class="log-meta">extra: <%= JSON.stringify(l.extra) %></div><% } %>
+              </td>
+              <td class="mem-cell">
+                <% if (l.memory && l.memory.usedJSHeapSize) { %>
+                  <%= (l.memory.usedJSHeapSize / 1024 / 1024).toFixed(1) %> MB
+                  / <%= (l.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(0) %> MB
+                <% } else { %>-<% } %>
+              </td>
+              <td class="log-meta">
+                <%= l.client_id ? l.client_id.slice(0, 8) : '-' %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+
+  <script>
+    setTimeout(() => location.reload(), 15000);
+  </script>
+</body>
+</html>

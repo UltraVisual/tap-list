@@ -5,6 +5,7 @@ const {
   PutCommand,
   UpdateCommand,
   ScanCommand,
+  BatchWriteCommand,
 } = require('@aws-sdk/lib-dynamodb');
 
 const client = new DynamoDBClient({
@@ -14,6 +15,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 const BEERS_TABLE = process.env.BEERS_TABLE || 'TaplistBeers';
 const SETTINGS_TABLE = process.env.SETTINGS_TABLE || 'TaplistSettings';
+const LOGS_TABLE = process.env.LOGS_TABLE || 'TaplistLogs';
 
 // ---------- Settings ----------
 
@@ -152,4 +154,50 @@ module.exports = {
   getBeerById,
   createBeer,
   updateBeer,
+  writeLogs,
+  getRecentLogs,
 };
+
+// ---------- Logs ----------
+
+async function writeLogs(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return 0;
+  const now = Date.now();
+  const expiresAt = Math.floor(now / 1000) + 7 * 24 * 60 * 60; // 7 days
+  const items = entries.slice(0, 100).map((e, i) => {
+    const rand = Math.random().toString(36).slice(2, 8);
+    return {
+      PutRequest: {
+        Item: {
+          id: `log-${now}-${i}-${rand}`,
+          ts: Number(e.ts) || now,
+          type: String(e.type || 'info').slice(0, 32),
+          message: String(e.message || '').slice(0, 2000),
+          stack: e.stack ? String(e.stack).slice(0, 4000) : undefined,
+          url: e.url ? String(e.url).slice(0, 512) : undefined,
+          client_id: e.client_id ? String(e.client_id).slice(0, 64) : undefined,
+          user_agent: e.user_agent ? String(e.user_agent).slice(0, 512) : undefined,
+          memory: e.memory || undefined,
+          extra: e.extra || undefined,
+          expires_at: expiresAt,
+        },
+      },
+    };
+  });
+
+  for (let i = 0; i < items.length; i += 25) {
+    const chunk = items.slice(i, i + 25);
+    await docClient.send(new BatchWriteCommand({
+      RequestItems: { [LOGS_TABLE]: chunk },
+    }));
+  }
+  return items.length;
+}
+
+async function getRecentLogs(limit = 200) {
+  const result = await docClient.send(
+    new ScanCommand({ TableName: LOGS_TABLE, Limit: 1000 })
+  );
+  const items = (result.Items || []).sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  return items.slice(0, limit);
+}

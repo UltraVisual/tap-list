@@ -27,6 +27,15 @@ router.get('/', async (req, res) => {
   res.render('admin/index', { beers, drafts, active });
 });
 
+// ---------- Logs viewer ----------
+router.get('/logs', async (req, res) => {
+  const filter = (req.query.type || '').toString();
+  const limit = Math.min(parseInt(req.query.limit) || 200, 500);
+  const all = await db.getRecentLogs(500);
+  const logs = filter ? all.filter(l => l.type === filter) : all;
+  res.render('admin/logs', { logs: logs.slice(0, limit), filter });
+});
+
 // ---------- Add beer form ----------
 router.get('/beers/new', (req, res) => {
   res.render('admin/beer-form', { beer: null });
