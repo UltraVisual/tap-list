@@ -25,7 +25,11 @@
     }
   </style>
 </head>
-<body>
+<body data-rendered-at="<%= Date.now() %>">
+  <div class="cache-badge" id="cacheBadge" hidden>
+    <span class="cache-dot"></span>
+    <span>Cached <span id="cacheBadgeTime"></span></span>
+  </div>
   <header class="header">
     <% if (settings.logo_path) { %>
       <img src="<%= baseUrl %><%= settings.logo_path %>" alt="<%= settings.taproom_name %>" class="logo">
@@ -187,16 +191,53 @@
     const BASE = '<%= baseUrl %>';
     let knownCount = document.querySelectorAll('.tap-card').length;
 
+    // ---- Cache badge ----
+    const cacheBadge = document.getElementById('cacheBadge');
+    const cacheBadgeTime = document.getElementById('cacheBadgeTime');
+
+    function formatCacheTime(ms) {
+      const d = new Date(Number(ms));
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getHours())}:${pad(d.getMinutes())} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+    }
+
+    function setCacheState(fromCache, cachedAt) {
+      if (fromCache) {
+        cacheBadgeTime.textContent = cachedAt ? formatCacheTime(cachedAt) : '';
+        cacheBadge.hidden = false;
+      } else {
+        cacheBadge.hidden = true;
+      }
+    }
+
+    // Detect if the HTML itself was served from cache (page rendered long ago)
+    const renderedAt = Number(document.body.dataset.renderedAt || 0);
+    if (renderedAt && Date.now() - renderedAt > 60000) {
+      setCacheState(true, renderedAt);
+    }
+
     async function refreshBeers() {
       try {
-        const res = await fetch(BASE + '/api/beers');
+        const res = await fetch(BASE + '/api/beers', { cache: 'no-store' });
+        const fromCache = res.headers.get('X-From-Cache') === '1';
+        const cachedAt = res.headers.get('X-Cached-At');
+        setCacheState(fromCache, cachedAt);
         const beers = await res.json();
         if (beers.length !== knownCount) { location.reload(); return; }
         updateBeerPints(beers);
-      } catch (e) {}
+      } catch (e) {
+        // Network fully failed — leave last cache state as-is; if we had never shown
+        // it, at least indicate we're offline with what we've got on screen.
+        setCacheState(true, renderedAt || Date.now());
+      }
     }
 
     setInterval(refreshBeers, 5000);
+
+    // ---- Service worker ----
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/public/sw.js').catch(() => {});
+    }
 
     // ---- Fullscreen toggle ----
     const fullscreenBtn = document.getElementById('fullscreenBtn');
