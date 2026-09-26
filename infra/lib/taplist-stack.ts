@@ -28,6 +28,14 @@ export class TaplistStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
+    const logsTable = new dynamodb.Table(this, 'LogsTable', {
+      tableName: 'TaplistLogs',
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: 'expires_at',
+    });
+
     // ---------- S3 bucket for uploads ----------
     const uploadsBucket = new s3.Bucket(this, 'UploadsBucket', {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
@@ -67,6 +75,7 @@ export class TaplistStack extends cdk.Stack {
       environment: {
         BEERS_TABLE: beersTable.tableName,
         SETTINGS_TABLE: settingsTable.tableName,
+        LOGS_TABLE: logsTable.tableName,
         UPLOADS_BUCKET: uploadsBucket.bucketName,
         NODE_ENV: 'production',
       },
@@ -75,6 +84,7 @@ export class TaplistStack extends cdk.Stack {
     // Grant Lambda permissions
     beersTable.grantReadWriteData(fn);
     settingsTable.grantReadWriteData(fn);
+    logsTable.grantReadWriteData(fn);
     uploadsBucket.grantReadWrite(fn);
 
     // Lambda Function URL (replaces API Gateway — simpler, no stage prefix, free)
