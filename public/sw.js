@@ -1,12 +1,19 @@
-// Tap List Service Worker
+// Tap List Service Worker — offline resilience for the display.
+// Kept intentionally lightweight: response.clone() is a cheap structural copy
+// (no data buffered in memory), so we never read bodies as blobs.
+//
 // Strategy:
-//   HTML/CSS/JS: network-first (short timeout), fall back to cache
-//   Images: cache-first (avoid re-fetching on flaky connections)
-//   API: network-first with cache fallback, so stale data is shown if the network drops
-// Every cached response carries X-Cached-At (ms epoch). On a cache-served response we
-// also set X-From-Cache: 1 so the page can show the "cached" badge.
+//   - Images/uploads: cache-first, one-shot fetch on miss (no background refetch loop).
+//     Uploaded image URLs contain a timestamp, so a "new" image is a new key
+//     and gets fetched naturally — refreshing existing image cache entries is
+//     wasted bandwidth and memory.
+//   - Everything else (HTML, CSS, JS, /api/*): network-first with a short
+//     timeout, falling back to whatever's in the cache.
+//
+// The cache-badge on the client uses localStorage to remember the last
+// successful poll timestamp; it doesn't rely on custom SW response headers.
 
-const CACHE_NAME = 'taplist-v3';
+const CACHE_NAME = 'taplist-v4';
 const NETWORK_TIMEOUT_MS = 4000;
 
 const PRECACHE_URLS = [
@@ -14,29 +21,21 @@ const PRECACHE_URLS = [
   '/pour',
   '/public/css/display.css',
   '/public/css/pour.css',
-  '/public/icons/icon-192x192.png',
-  '/public/icons/icon-512x512.png',
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => Promise.all(
-        PRECACHE_URLS.map(url =>
-          fetch(url, { cache: 'no-store' })
-            .then(res => res.ok ? wrapAndStore(cache, new Request(url), res) : null)
-            .catch(() => null)
-        )
-      ))
+      .then(cache => cache.addAll(PRECACHE_URLS).catch(() => {}))
       .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
@@ -45,7 +44,8 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  const isImage = /\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(url.pathname) || url.pathname.startsWith('/uploads/');
+  const isImage = /\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(url.pathname)
+    || url.pathname.startsWith('/uploads/');
 
   if (isImage) {
     event.respondWith(cacheFirst(req));
@@ -55,56 +55,32 @@ self.addEventListener('fetch', event => {
 });
 
 async function networkFirst(req) {
-  const cache = await caches.open(CACHE_NAME);
   try {
     const net = await fetchWithTimeout(req, NETWORK_TIMEOUT_MS);
     if (net && net.ok) {
-      wrapAndStore(cache, req, net.clone());
-      return net;
+      const clone = net.clone();
+      caches.open(CACHE_NAME).then(c => c.put(req, clone)).catch(() => {});
     }
-    throw new Error('bad response');
+    return net;
   } catch {
-    const cached = await cache.match(req);
-    if (cached) return withCacheHeader(cached);
-    return new Response('Offline and not cached', { status: 503 });
+    const cached = await caches.match(req);
+    return cached || new Response('Offline', { status: 503 });
   }
 }
 
 async function cacheFirst(req) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(req);
-  if (cached) {
-    // Refresh in the background
-    fetch(req).then(res => { if (res && res.ok) wrapAndStore(cache, req, res); }).catch(() => {});
-    return withCacheHeader(cached);
-  }
+  const cached = await caches.match(req);
+  if (cached) return cached;
   try {
     const net = await fetch(req);
-    if (net && net.ok) wrapAndStore(cache, req, net.clone());
+    if (net && net.ok) {
+      const clone = net.clone();
+      caches.open(CACHE_NAME).then(c => c.put(req, clone)).catch(() => {});
+    }
     return net;
   } catch {
-    return new Response('Offline and not cached', { status: 503 });
+    return new Response('Offline', { status: 503 });
   }
-}
-
-async function wrapAndStore(cache, req, res) {
-  try {
-    const body = await res.blob();
-    const headers = new Headers(res.headers);
-    headers.set('X-Cached-At', String(Date.now()));
-    const wrapped = new Response(body, { status: res.status, statusText: res.statusText, headers });
-    await cache.put(req, wrapped);
-  } catch {}
-}
-
-function withCacheHeader(res) {
-  const headers = new Headers(res.headers);
-  headers.set('X-From-Cache', '1');
-  return res.blob().then(body => new Response(body, {
-    status: res.status,
-    statusText: res.statusText,
-    headers,
-  }));
 }
 
 function fetchWithTimeout(req, ms) {

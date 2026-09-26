@@ -194,6 +194,7 @@
     // ---- Cache badge ----
     const cacheBadge = document.getElementById('cacheBadge');
     const cacheBadgeTime = document.getElementById('cacheBadgeTime');
+    const LS_LAST_OK = 'taplist:lastOk';
 
     function formatCacheTime(ms) {
       const d = new Date(Number(ms));
@@ -201,38 +202,44 @@
       return `${pad(d.getHours())}:${pad(d.getMinutes())} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
     }
 
-    function setCacheState(fromCache, cachedAt) {
-      if (fromCache) {
-        cacheBadgeTime.textContent = cachedAt ? formatCacheTime(cachedAt) : '';
-        cacheBadge.hidden = false;
-      } else {
-        cacheBadge.hidden = true;
-      }
+    function readLastOk() {
+      try { return Number(localStorage.getItem(LS_LAST_OK)) || 0; } catch { return 0; }
+    }
+    function writeLastOk(ts) {
+      try { localStorage.setItem(LS_LAST_OK, String(ts)); } catch {}
+    }
+    function showBadge(ts) {
+      cacheBadgeTime.textContent = ts ? formatCacheTime(ts) : '';
+      cacheBadge.hidden = false;
+    }
+    function hideBadge() {
+      cacheBadge.hidden = true;
     }
 
-    // Detect if the HTML itself was served from cache (page rendered long ago)
+    // On load: if we've been open for a while since server-render, show the badge
+    // with the last known good timestamp until the next successful poll clears it.
     const renderedAt = Number(document.body.dataset.renderedAt || 0);
     if (renderedAt && Date.now() - renderedAt > 60000) {
-      setCacheState(true, renderedAt);
+      showBadge(readLastOk() || renderedAt);
     }
 
     async function refreshBeers() {
       try {
         const res = await fetch(BASE + '/api/beers', { cache: 'no-store' });
-        const fromCache = res.headers.get('X-From-Cache') === '1';
-        const cachedAt = res.headers.get('X-Cached-At');
-        setCacheState(fromCache, cachedAt);
+        if (!res.ok) throw new Error('bad status');
         const beers = await res.json();
+        writeLastOk(Date.now());
+        hideBadge();
         if (beers.length !== knownCount) { location.reload(); return; }
         updateBeerPints(beers);
       } catch (e) {
-        // Network fully failed — leave last cache state as-is; if we had never shown
-        // it, at least indicate we're offline with what we've got on screen.
-        setCacheState(true, renderedAt || Date.now());
+        showBadge(readLastOk() || renderedAt);
       }
     }
 
     setInterval(refreshBeers, 5000);
+    // Kick off an immediate poll so a successful load clears any stale badge fast.
+    refreshBeers();
 
     // ---- Service worker ----
     if ('serviceWorker' in navigator) {
