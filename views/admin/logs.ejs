@@ -21,6 +21,8 @@
     .log-type-heartbeat { background: #6c757d; color: #fff; }
     .log-type-info      { background: #17a2b8; color: #fff; }
     .log-type-poll_fail { background: #fd7e14; color: #fff; }
+    .log-type-fullscreen { background: #6610f2; color: #fff; }
+    .log-type-image     { background: #20c997; color: #fff; }
     .log-msg { max-width: 480px; overflow-wrap: anywhere; white-space: pre-wrap; }
     .log-stack { color: var(--text-muted); font-size: 0.72rem; max-width: 420px; overflow-wrap: anywhere; white-space: pre-wrap; margin-top: 0.25rem; }
     .log-meta { color: var(--text-muted); font-size: 0.72rem; }
@@ -43,6 +45,8 @@
       <a href="/admin/logs?type=error" class="<%= filter === 'error' ? 'active' : '' %>">Errors</a>
       <a href="/admin/logs?type=rejection" class="<%= filter === 'rejection' ? 'active' : '' %>">Rejections</a>
       <a href="/admin/logs?type=poll_fail" class="<%= filter === 'poll_fail' ? 'active' : '' %>">Poll Fails</a>
+      <a href="/admin/logs?type=fullscreen" class="<%= filter === 'fullscreen' ? 'active' : '' %>">Fullscreen</a>
+      <a href="/admin/logs?type=image" class="<%= filter === 'image' ? 'active' : '' %>">Images</a>
       <a href="/admin/logs?type=heartbeat" class="<%= filter === 'heartbeat' ? 'active' : '' %>">Heartbeats</a>
       <span style="margin-left: auto; color: var(--text-muted); font-size: 0.85rem;">
         <%= logs.length %> entries · auto-refresh 15s

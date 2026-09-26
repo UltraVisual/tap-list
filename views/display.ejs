@@ -70,7 +70,7 @@
 
         <% if (beer.image_path) { %>
           <div class="beer-image">
-            <img src="<%= baseUrl %><%= beer.image_path %>" alt="<%= beer.name %>">
+            <img src="<%= baseUrl %><%= beer.image_path %>" alt="<%= beer.name %>" decoding="async" fetchpriority="low">
           </div>
         <% } else { %>
           <div class="beer-image beer-image--placeholder">
@@ -251,15 +251,43 @@
     // ---- Fullscreen toggle ----
     const fullscreenBtn = document.getElementById('fullscreenBtn');
     fullscreenBtn.addEventListener('click', () => {
+      try { window.TapLogger && TapLogger.log('fullscreen', 'requested', { data: { alreadyFs: !!document.fullscreenElement, viewport: window.innerWidth + 'x' + window.innerHeight } }); } catch {}
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
+        document.documentElement.requestFullscreen()
+          .then(() => { try { TapLogger && TapLogger.log('fullscreen', 'enter resolved'); } catch {} })
+          .catch(e => { try { TapLogger && TapLogger.log('fullscreen', 'enter rejected: ' + (e && e.message)); } catch {} });
       } else {
         document.exitFullscreen();
       }
     });
 
     document.addEventListener('fullscreenchange', () => {
-      document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+      const isFs = !!document.fullscreenElement;
+      document.body.classList.toggle('is-fullscreen', isFs);
+      try { TapLogger && TapLogger.log('fullscreen', isFs ? 'entered' : 'exited', { data: { viewport: window.innerWidth + 'x' + window.innerHeight, dpr: window.devicePixelRatio } }); } catch {}
+      // Sample memory again shortly after — this is the window where the
+      // Raspberry Pi Chromium OOMs.
+      setTimeout(() => { try { TapLogger && TapLogger.log('fullscreen', isFs ? 'entered +2s' : 'exited +2s'); } catch {} }, 2000);
+      setTimeout(() => { try { TapLogger && TapLogger.log('fullscreen', isFs ? 'entered +5s' : 'exited +5s'); } catch {} }, 5000);
+    });
+
+    // Log natural size of each beer image so we can see if source files are huge.
+    document.querySelectorAll('.beer-image img').forEach(img => {
+      const record = () => {
+        try {
+          TapLogger && TapLogger.log('image', 'loaded', { data: {
+            src: img.currentSrc || img.src,
+            natural: img.naturalWidth + 'x' + img.naturalHeight,
+            display: img.clientWidth + 'x' + img.clientHeight,
+            approxMB: ((img.naturalWidth * img.naturalHeight * 4) / (1024 * 1024)).toFixed(1),
+          }});
+        } catch {}
+      };
+      if (img.complete && img.naturalWidth) record();
+      else img.addEventListener('load', record, { once: true });
+      img.addEventListener('error', () => {
+        try { TapLogger && TapLogger.log('image', 'error', { data: { src: img.currentSrc || img.src } }); } catch {}
+      }, { once: true });
     });
 
     // ---- Pour drawer ----
