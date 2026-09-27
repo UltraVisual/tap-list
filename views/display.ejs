@@ -44,14 +44,6 @@
         <path d="M5 12v9h11v-9"/>
       </svg>
     </button>
-    <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle fullscreen">
-      <svg class="fullscreen-icon fullscreen-icon--enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-      </svg>
-      <svg class="fullscreen-icon fullscreen-icon--exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
-      </svg>
-    </button>
   </header>
 
   <main class="tap-grid">
@@ -247,29 +239,6 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/public/sw.js').catch(() => {});
     }
-
-    // ---- Fullscreen toggle ----
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    fullscreenBtn.addEventListener('click', () => {
-      try { window.TapLogger && TapLogger.log('fullscreen', 'requested', { data: { alreadyFs: !!document.fullscreenElement, viewport: window.innerWidth + 'x' + window.innerHeight } }); } catch {}
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen()
-          .then(() => { try { TapLogger && TapLogger.log('fullscreen', 'enter resolved'); } catch {} })
-          .catch(e => { try { TapLogger && TapLogger.log('fullscreen', 'enter rejected: ' + (e && e.message)); } catch {} });
-      } else {
-        document.exitFullscreen();
-      }
-    });
-
-    document.addEventListener('fullscreenchange', () => {
-      const isFs = !!document.fullscreenElement;
-      document.body.classList.toggle('is-fullscreen', isFs);
-      try { TapLogger && TapLogger.log('fullscreen', isFs ? 'entered' : 'exited', { data: { viewport: window.innerWidth + 'x' + window.innerHeight, dpr: window.devicePixelRatio } }); } catch {}
-      // Sample memory again shortly after — this is the window where the
-      // Raspberry Pi Chromium OOMs.
-      setTimeout(() => { try { TapLogger && TapLogger.log('fullscreen', isFs ? 'entered +2s' : 'exited +2s'); } catch {} }, 2000);
-      setTimeout(() => { try { TapLogger && TapLogger.log('fullscreen', isFs ? 'entered +5s' : 'exited +5s'); } catch {} }, 5000);
-    });
 
     // Log natural size of each beer image so we can see if source files are huge.
     document.querySelectorAll('.beer-image img').forEach(img => {

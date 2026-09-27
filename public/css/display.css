@@ -94,33 +94,23 @@ body {
   text-shadow: 0 2px 12px rgba(245, 166, 35, 0.3);
 }
 
-/* ---------- Header buttons ---------- */
-.fullscreen-btn,
+/* ---------- Pour Drawer Button ---------- */
 .pour-drawer-btn {
   position: absolute;
   top: 50%;
+  right: 1rem;
   transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text-muted);
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s;
-}
-
-.fullscreen-btn { right: 1rem; }
-.pour-drawer-btn { right: 4rem; }
-
-.fullscreen-btn:hover,
-.pour-drawer-btn:hover,
-.pour-drawer-btn.is-active {
-  background: rgba(255, 255, 255, 0.15);
-  color: var(--text);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .pour-drawer-btn:hover,
@@ -130,22 +120,9 @@ body {
   color: var(--accent);
 }
 
-.fullscreen-icon,
 .pour-drawer-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.fullscreen-icon--exit {
-  display: none;
-}
-
-.is-fullscreen .fullscreen-icon--enter {
-  display: none;
-}
-
-.is-fullscreen .fullscreen-icon--exit {
-  display: block;
+  width: 30px;
+  height: 30px;
 }
 
 /* ---------- Tap Grid ---------- */
