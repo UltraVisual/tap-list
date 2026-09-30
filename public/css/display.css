@@ -72,7 +72,6 @@ body {
   justify-content: center;
   align-items: center;
   padding: 0.6rem 1rem;
-  background: linear-gradient(180deg, #1a1a1a 0%, var(--bg) 100%);
   border-bottom: 2px solid var(--accent);
   position: relative;
   flex-shrink: 0;
