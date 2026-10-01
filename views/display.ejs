@@ -26,11 +26,7 @@
     }
   </style>
 </head>
-<body data-rendered-at="<%= Date.now() %>">
-  <div class="cache-badge" id="cacheBadge" hidden>
-    <span class="cache-dot"></span>
-    <span>Cached <span id="cacheBadgeTime"></span></span>
-  </div>
+<body>
   <header class="header">
     <% if (settings.logo_path) { %>
       <img src="<%= baseUrl %><%= settings.logo_path %>" alt="<%= settings.taproom_name %>" class="logo">
@@ -183,62 +179,79 @@
     // ---- Live poll ----
     const BASE = '<%= baseUrl %>';
     let knownCount = document.querySelectorAll('.tap-card').length;
-
-    // ---- Cache badge ----
-    const cacheBadge = document.getElementById('cacheBadge');
-    const cacheBadgeTime = document.getElementById('cacheBadgeTime');
-    const LS_LAST_OK = 'taplist:lastOk';
-
-    function formatCacheTime(ms) {
-      const d = new Date(Number(ms));
-      const pad = n => String(n).padStart(2, '0');
-      return `${pad(d.getHours())}:${pad(d.getMinutes())} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
-    }
-
-    function readLastOk() {
-      try { return Number(localStorage.getItem(LS_LAST_OK)) || 0; } catch { return 0; }
-    }
-    function writeLastOk(ts) {
-      try { localStorage.setItem(LS_LAST_OK, String(ts)); } catch {}
-    }
-    function showBadge(ts) {
-      cacheBadgeTime.textContent = ts ? formatCacheTime(ts) : '';
-      cacheBadge.hidden = false;
-    }
-    function hideBadge() {
-      cacheBadge.hidden = true;
-    }
-
-    // On load: if we've been open for a while since server-render, show the badge
-    // with the last known good timestamp until the next successful poll clears it.
-    const renderedAt = Number(document.body.dataset.renderedAt || 0);
-    if (renderedAt && Date.now() - renderedAt > 60000) {
-      showBadge(readLastOk() || renderedAt);
-    }
+    let knownVersion = null;
 
     async function refreshBeers() {
       try {
         const res = await fetch(BASE + '/api/beers', { cache: 'no-store' });
         if (!res.ok) throw new Error('bad status ' + res.status);
+        const version = res.headers.get('X-Taplist-Version');
         const beers = await res.json();
-        writeLastOk(Date.now());
-        hideBadge();
+        // Reload if the display-affecting state (any beer field or settings) changed.
+        if (knownVersion === null) {
+          knownVersion = version;
+        } else if (version && version !== knownVersion) {
+          location.reload();
+          return;
+        }
         if (beers.length !== knownCount) { location.reload(); return; }
         updateBeerPints(beers);
       } catch (e) {
-        showBadge(readLastOk() || renderedAt);
         try { window.TapLogger && TapLogger.log('poll_fail', 'refreshBeers failed: ' + (e && e.message || e)); } catch {}
       }
     }
 
     setInterval(refreshBeers, 5000);
-    // Kick off an immediate poll so a successful load clears any stale badge fast.
     refreshBeers();
 
     // ---- Service worker ----
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/public/sw.js').catch(() => {});
     }
+
+    // ---- Long-press to force refresh (touch and mouse) ----
+    const LONG_PRESS_MS = 1500;
+    const MOVE_THRESHOLD = 12;
+    let longPressTimer = null;
+    let longPressStart = null;
+
+    function getPoint(e) {
+      const t = e.touches && e.touches[0];
+      return t ? { x: t.clientX, y: t.clientY } : { x: e.clientX, y: e.clientY };
+    }
+
+    function cancelLongPress() {
+      if (longPressTimer) clearTimeout(longPressTimer);
+      longPressTimer = null;
+      longPressStart = null;
+    }
+
+    function startLongPress(e) {
+      if (e.target.closest('button, .pour-drawer, .pour-drawer-overlay, a')) return;
+      longPressStart = getPoint(e);
+      cancelLongPress();
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        location.reload();
+      }, LONG_PRESS_MS);
+    }
+
+    function checkMove(e) {
+      if (!longPressStart || !longPressTimer) return;
+      const p = getPoint(e);
+      if (Math.hypot(p.x - longPressStart.x, p.y - longPressStart.y) > MOVE_THRESHOLD) {
+        cancelLongPress();
+      }
+    }
+
+    document.addEventListener('touchstart', startLongPress, { passive: true });
+    document.addEventListener('touchend', cancelLongPress, { passive: true });
+    document.addEventListener('touchcancel', cancelLongPress, { passive: true });
+    document.addEventListener('touchmove', checkMove, { passive: true });
+    document.addEventListener('mousedown', startLongPress);
+    document.addEventListener('mouseup', cancelLongPress);
+    document.addEventListener('mouseleave', cancelLongPress);
+    document.addEventListener('mousemove', checkMove);
 
     // Log natural size of each beer image so we can see if source files are huge.
     document.querySelectorAll('.beer-image img').forEach(img => {

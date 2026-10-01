@@ -1,11 +1,29 @@
 const express = require('express');
+const crypto = require('crypto');
 const db = require('../db');
 
 const router = express.Router();
 
+// Hash of everything the display cares about EXCEPT pint counts
+// (pints update in place on the client without a reload).
+function computeTaplistVersion(beers, settings) {
+  const bits = [
+    settings.taproom_name || '',
+    settings.theme || '',
+    settings.logo_path || '',
+    ...beers.map(b => [
+      b.id, b.tap_number, b.name, b.image_path, b.description,
+      b.abv, b.style, b.brewery, b.is_coming_soon, b.is_draft,
+    ].join('|')),
+  ];
+  return crypto.createHash('md5').update(bits.join('\x1e')).digest('hex').slice(0, 16);
+}
+
 // ---------- Get all active (on-tap) beers ----------
 router.get('/beers', async (req, res) => {
-  const beers = await db.getOnTapBeers();
+  const [beers, settings] = await Promise.all([db.getOnTapBeers(), db.getSettings()]);
+  res.set('X-Taplist-Version', computeTaplistVersion(beers, settings));
+  res.set('Access-Control-Expose-Headers', 'X-Taplist-Version');
   res.json(beers);
 });
 
